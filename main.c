@@ -132,14 +132,13 @@ t_2d	find_h_intersect(float py)
 {
 	t_2d	ray_pos;
 		float yn, xn, ys, xs, ra, rx, ry;
-		ra = PI/2;
+		ra = 3*PI/2;
 	// Horizontal intersection
-	yn = py - (int)(py / 64) * 64;
+	yn =64 - (py - (int)(py / 64) * 64);
 	xn = yn / (tan(ra)+0.000001);
 
 	ys = 64;
 	xs = ys / tan(ra);
-
 
 	ray_pos.x = xn;
 	ray_pos.y = yn;
@@ -152,14 +151,14 @@ t_2d	find_v_intersect(float px)
 		float yn, xn, ys, xs, ra, rx, ry;
 		ra = 0;
 	// Horizontal intersection
-	xn = 64 - (int)(px / 64) * 64;
+	xn = px - (int)(px / 64) * 64;
 	yn = xn *(tan(ra)+0.000001);
 
 	xs = 64;
 	ys = xs / tan(ra);
 
 
-	ray_pos.x = xn;
+	ray_pos.x = xn+64;
 	ray_pos.y = yn;
 	return ray_pos;
 
@@ -176,8 +175,8 @@ void	draw_ray(float pa, float px, float py, SDL_Renderer *rend)
 	//ry+=ys;
 	ray_hpos = find_h_intersect(py);
 	//ray_vpos = find_v_intersect(px);
-	//SDL_RenderDrawLine(rend, px, py, px-ray_hpos.x, py-ray_hpos.y);
-	SDL_RenderDrawLine(rend, px, py, px-ray_vpos.x, py-ray_vpos.y);
+	SDL_RenderDrawLine(rend, px, py, px+ray_hpos.x, py+ray_hpos.y);
+	//SDL_RenderDrawLine(rend, px, py, px+ray_vpos.x, py+ray_vpos.y);
 	//printf("%f %f %f %f", px, py, rx, ry);
 	//exit(1);
 	//testing rest intesection
