@@ -1,4 +1,5 @@
-#include "SDL.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "wolf3d.h"
 #include <math.h>
 #define PI 3.1415926535
@@ -120,13 +121,74 @@ void drawMap2D(SDL_Renderer *rend)
 		}
 	}
 }
+int FixAng(int a){ if(a>359){ a-=360;} if(a<0){ a+=360;} return a;}
+
+
+typedef struct s_2d{
+	float x;
+	float y;
+}				t_2d;
+t_2d	find_h_intersect(float py)
+{
+	t_2d	ray_pos;
+		float yn, xn, ys, xs, ra, rx, ry;
+		ra = PI/2;
+	// Horizontal intersection
+	yn = py - (int)(py / 64) * 64;
+	xn = yn / (tan(ra)+0.000001);
+
+	ys = 64;
+	xs = ys / tan(ra);
+
+
+	ray_pos.x = xn;
+	ray_pos.y = yn;
+	return ray_pos;
+
+}
+t_2d	find_v_intersect(float px)
+{
+	t_2d	ray_pos;
+		float yn, xn, ys, xs, ra, rx, ry;
+		ra = 0;
+	// Horizontal intersection
+	xn = 64 - (int)(px / 64) * 64;
+	yn = xn *(tan(ra)+0.000001);
+
+	xs = 64;
+	ys = xs / tan(ra);
+
+
+	ray_pos.x = xn;
+	ray_pos.y = yn;
+	return ray_pos;
+
+}
+
+void	draw_ray(float pa, float px, float py, SDL_Renderer *rend)
+{
+	float yn, xn, ys, xs, ra, rx, ry;
+	t_2d	ray_hpos;
+	t_2d	ray_vpos;
+	//testint first intersection
+	//SDL_RenderDrawLine(rend, px, py, rx, ry);
+	//rx+=xs;
+	//ry+=ys;
+	ray_hpos = find_h_intersect(py);
+	//ray_vpos = find_v_intersect(px);
+	//SDL_RenderDrawLine(rend, px, py, px-ray_hpos.x, py-ray_hpos.y);
+	SDL_RenderDrawLine(rend, px, py, px-ray_vpos.x, py-ray_vpos.y);
+	//printf("%f %f %f %f", px, py, rx, ry);
+	//exit(1);
+	//testing rest intesection
+}
 
 void	cast_rays(float pa, float py, float px)
 {
 	int r,mx,my,mp,dof;
 	float	rx,ry,ra,xo,yo;
 	ra=pa;
-	r = 0;
+	r = PI/2;
 	while (r < 1)
 	{
 		float aTan = -1/tan(ra);
@@ -142,8 +204,8 @@ void	cast_rays(float pa, float py, float px)
 		/****************************** START-VARIABLES ****************************/
 		float pdx = cos (0)*5;
 		float pdy = sin(0)*5;  
-		float pa = 0;
-		double py = 4*64, px = 5*64;		//x and y start position
+		float pa = 1;
+		double py = 4*64+20, px = 5*64+20;		//x and y start position
 		double dirX = -1, dirY = 0; //initial direction vector
 
 		double planeX = 0, planeY = 0.66; //the 2d raycaster version of camera plane
@@ -157,32 +219,7 @@ void	cast_rays(float pa, float py, float px)
 		/****************************** END-VARIABLES ****************************/
 		SDL_Init(SDL_INIT_VIDEO);
 
-		int map[mapWidth][mapHeight] =
-			{
-				{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-				{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 4, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 4, 0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
+
 
 		SDL_Window *window = SDL_CreateWindow(
 			"SDL2Test",
@@ -230,6 +267,7 @@ void	cast_rays(float pa, float py, float px)
 		drawMap2D(rend);
 		put_player(10,px,py,rend);
 		SDL_RenderDrawLine(rend, px+10/2,py+10/2,px+pdx*5+10/2, py+pdy*5+10/2);
+		draw_ray(pa,  px,  py, rend);
 		SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
 		SDL_RenderPresent(rend);
 	}
