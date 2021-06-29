@@ -128,15 +128,38 @@ typedef struct s_2d{
 	float x;
 	float y;
 }				t_2d;
-t_2d	find_h_intersect(float py)
+
+t_2d	find_h_intersect(float py, float pa)
 {
 	t_2d	ray_pos;
 		float yn, xn, ys, xs, ra, rx, ry;
-		ra = 3*PI/2;
+		ra = pa;
 	// Horizontal intersection
-	yn =64 - (py - (int)(py / 64) * 64);
-	xn = yn / (tan(ra)+0.000001);
+	if (pa >=0 && pa <= PI/2)
+	{
+		yn = -(py - (int)(py / 64) * 64);
+		xn = -(yn / (tan(ra)+0.000001));
+		
+	}
 
+	if (pa >PI/2 && pa <= PI)
+	{
+		yn = -(py - (int)(py / 64) * 64);
+		xn = -(yn / (tan(ra)+0.000001));
+	}
+
+	if (pa > PI && pa <= 3*PI/2)
+	{
+		yn =64 - (py - (int)(py / 64) * 64);
+		xn = -(yn / (tan(ra)+0.000001));
+	}
+
+	if (pa > 3*PI/2 && pa < 2*PI)
+	{
+		yn =64 - (py - (int)(py / 64) * 64);
+		xn = -(yn / (tan(ra)+0.000001));
+	}
+	
 	ys = 64;
 	xs = ys / tan(ra);
 
@@ -145,20 +168,44 @@ t_2d	find_h_intersect(float py)
 	return ray_pos;
 
 }
-t_2d	find_v_intersect(float px)
+t_2d	find_v_intersect(float px, float pa)
 {
 	t_2d	ray_pos;
 		float yn, xn, ys, xs, ra, rx, ry;
-		ra = 0;
+		ra = pa;
 	// Horizontal intersection
-	xn = px - (int)(px / 64) * 64;
-	yn = xn *(tan(ra)+0.000001);
+	if (pa >=0 && pa <= PI/2)
+	{
+		xn = 64 -(px - (int)(px / 64) * 64);
+		yn = -(xn * (tan(ra)+0.000001));
+	}
+
+	if (pa >PI/2 && pa <= PI)
+	{
+		xn = -(px - (int)(px / 64) * 64);
+		yn = -(xn * (tan(ra)+0.000001));
+	}
+
+	if (pa > PI && pa <= 3*PI/2)
+	{
+		xn = -((px - (int)(px / 64) * 64));
+		yn = -(xn * (tan(ra)+0.000001));
+	}
+
+	if (pa > 3*PI/2 && pa < 2*PI)
+	{
+		xn = 64 -(px - (int)(px / 64) * 64);
+		yn = -(xn * (tan(ra)+0.000001));
+	}
+
+	//xn = 64 -(px - (int)(px / 64) * 64);
+	//yn = xn * (tan(ra)+0.000001);
 
 	xs = 64;
 	ys = xs / tan(ra);
 
 
-	ray_pos.x = xn+64;
+	ray_pos.x = xn;
 	ray_pos.y = yn;
 	return ray_pos;
 
@@ -173,9 +220,9 @@ void	draw_ray(float pa, float px, float py, SDL_Renderer *rend)
 	//SDL_RenderDrawLine(rend, px, py, rx, ry);
 	//rx+=xs;
 	//ry+=ys;
-	ray_hpos = find_h_intersect(py);
-	//ray_vpos = find_v_intersect(px);
-	SDL_RenderDrawLine(rend, px, py, px+ray_hpos.x, py+ray_hpos.y);
+	//ray_hpos = find_h_intersect(py, pa);
+	ray_vpos = find_v_intersect(px, pa);
+	SDL_RenderDrawLine(rend, px, py, px+ray_vpos.x, py+ray_vpos.y);
 	//SDL_RenderDrawLine(rend, px, py, px+ray_vpos.x, py+ray_vpos.y);
 	//printf("%f %f %f %f", px, py, rx, ry);
 	//exit(1);
@@ -201,9 +248,9 @@ void	cast_rays(float pa, float py, float px)
 	{
 
 		/****************************** START-VARIABLES ****************************/
-		float pdx = cos (0)*5;
-		float pdy = sin(0)*5;  
-		float pa = 1;
+		float pa = 0;
+		float pdx = cos (pa)*5;
+		float pdy = sin(pa)*5;  
 		double py = 4*64+20, px = 5*64+20;		//x and y start position
 		double dirX = -1, dirY = 0; //initial direction vector
 
@@ -265,7 +312,7 @@ void	cast_rays(float pa, float py, float px)
 		// min_map(rend, map, px, py);
 		drawMap2D(rend);
 		put_player(10,px,py,rend);
-		SDL_RenderDrawLine(rend, px+10/2,py+10/2,px+pdx*5+10/2, py+pdy*5+10/2);
+		SDL_RenderDrawLine(rend, px+10/2,py+10/2,px+pdx*5+10/2, py-pdy*5+10/2);
 		draw_ray(pa,  px,  py, rend);
 		SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
 		SDL_RenderPresent(rend);
