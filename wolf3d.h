@@ -19,6 +19,10 @@ typedef struct	s_player
 	float dist[numRays];
 	float speed;
 	float fov;
+	double frame_player_x;
+   	double frame_player_y;
+	int player_num;
+
 }				t_player;
 
 typedef struct	s_ray

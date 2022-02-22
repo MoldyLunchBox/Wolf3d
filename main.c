@@ -1,5 +1,7 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_image.h"
+# include "SDL2/SDL_ttf.h"
+# include "SDL2/SDL_mixer.h"
 #include "wolf3d.h"
 
 #define PI 3.1415926535
@@ -9,6 +11,76 @@
 #define cellS 20 //map cube size
 #define mapS mapX * cellS
 #define WALL_H 50
+
+int sound_press(SDL_MouseButtonEvent b)
+{
+   if(b.button == SDL_BUTTON_LEFT){
+      if (b.x >= W_W-60 && b.x <= W_W-10 && b.y >= 10 && b.y <= 50)
+         return (1);
+   }
+   return (0);
+}
+
+int play_press(SDL_MouseButtonEvent b)
+{
+   if(b.button == SDL_BUTTON_LEFT){
+      if (b.x >= W_W/2-156 && b.x <= W_W/2-156 + 313 && b.y >= W_H/2 && b.y <= W_H/2 + 159)
+         return (1);
+   }
+   return (0);
+}
+
+int menu_icon_press(SDL_MouseButtonEvent b)
+{
+   if(b.button == SDL_BUTTON_LEFT){
+      if (b.x >= 10 && b.x <= 60 && b.y >= 10 && b.y <= 60)
+         return (1);
+   }
+   return (0);
+}
+
+int menu_buttons_press(SDL_MouseButtonEvent b)
+{
+   if(b.button == SDL_BUTTON_LEFT){
+      if (b.x >= W_W/2-100 && b.x <= W_W/2+100)
+      {
+         if (b.y >= (W_H/6*0)+(12*1) && b.y <= (W_H/6*0)+(12*1) + W_H/6)
+            return (1);
+         if (b.y >= (W_H/6*1)+(12*2) && b.y <= (W_H/6*1)+(12*2) + W_H/6)
+            return (2);
+         if (b.y >= (W_H/6*2)+(12*3) && b.y <= (W_H/6*2)+(12*3) + W_H/6)
+            return (3);
+         if (b.y >= (W_H/6*3)+(12*4) && b.y <= (W_H/6*3)+(12*4) + W_H/6)
+            return (4);
+         if (b.y >= (W_H/6*4)+(12*5) && b.y <= (W_H/6*4)+(12*5) + W_H/6)
+            return (5);
+      }
+   }
+   return (0);
+}
+
+int close_btn_press(SDL_MouseButtonEvent b)
+{
+   if(b.button == SDL_BUTTON_LEFT){
+      if (b.x >= W_W - 55 && b.x <= W_W - 15 && b.y >= 15 && b.y <= 55)
+         return (1);
+   }
+   return (0);
+}
+
+int img_player_press(SDL_MouseButtonEvent b)
+{
+   if(b.button == SDL_BUTTON_LEFT){
+      if (b.y >= W_H/2+W_H/6 && b.y <= W_H/2+W_H/6+W_H/2-W_H/4)
+      {
+         if (b.x >= W_W/5 && b.x <= W_W/5 + W_W/9)
+            return (1);
+         if (b.x >= W_W-W_W/5-W_W/10 && b.x <= W_W-W_W/5-W_W/10 + W_W/9)
+            return (2);
+      }
+   }
+   return (0);
+}
 
 float dtor(float d)
 {
@@ -203,8 +275,12 @@ void player_reset(t_player *player)
     player->a = dtor(1.0f);
 	player->rotatSpeed = dtor(4.0f); // 0.5 not map 2.0 with map
 	player->size = cellS / 5;
-	player->speed = 5;
+	player->speed = 3;
 	player->fov = 60.0;
+	player->player_num = 1;
+	player->frame_player_x = 4;
+   	player->frame_player_y = 1;
+	
 }
 
 void update(t_player *player, SDL_Renderer *rend)
@@ -215,11 +291,16 @@ void update(t_player *player, SDL_Renderer *rend)
 
 	if (keys[SDL_SCANCODE_DOWN])
     {
+		player->frame_player_x++;
+        player->frame_player_y = 0;
+       
 		dx -= cos(player->a);
         dy += sin(player->a);
 	}
 	if (keys[SDL_SCANCODE_UP])
     {
+		player->frame_player_x++;
+        player->frame_player_y = 1;
 		dx += cos(player->a);
         dy -= sin(player->a);
 	}
@@ -235,7 +316,10 @@ void update(t_player *player, SDL_Renderer *rend)
 		if (player->a < 0)
 			player->a += 2 * PI;
 	}
-	
+	if (player->frame_player_x > 7)
+       player->frame_player_x = 0;
+    if (player->frame_player_x < 0)
+       player->frame_player_x = 7;
 	safe_map(player, dx, dy);
 }
 
@@ -601,8 +685,8 @@ void	draw_sky(SDL_Renderer *rend, SDL_Surface *sky, t_player *player)
 		{			
 			x0 = (int)(player->a*5 / PI * 180.0f) - x;
 			if (x0 < 0)
-				x0+=600;
-			x0=x0%600;
+				x0+=800;
+			x0=x0%800;
 			SDL_Color rgb;
 			Uint32 data = getpixel(sky, x0, y);
 			SDL_GetRGB(data, sky->format, &rgb.r, &rgb.g, &rgb.b);
@@ -628,27 +712,59 @@ int main(int argc, char *argv[])
 	t_player player;
 	player_reset(&player);
 
+	SDL_Surface *wall = IMG_Load("resources/wall.png");
+	SDL_Surface *door = IMG_Load("resources/door1.jpg");
+	SDL_Surface *floor = IMG_Load("resources/floor.png");
+	SDL_Surface *ceil = IMG_Load("resources/ceil.png");
+	SDL_Surface *sky = IMG_Load("resources/menu_sc.png");
+	SDL_Surface *key = IMG_Load("resources/pillar.png");
+	
+	
+   	SDL_Surface *welcom_sc;
+   	SDL_Surface *wolf3d;
+   	SDL_Surface *play;
+   	SDL_Surface *menu_icon;
+   	SDL_Surface *icon;
+   	SDL_Surface *player1;
+   	SDL_Surface *player2;
+   	SDL_Surface *menu_sc;
+   	SDL_Surface *menu_btns;
+   	int menu_btn_clicked = 0;
+   	int previous_screen = 1;
+   	SDL_Surface *options_pupop;
+   	int options_pupop_showed = 0;
+   	SDL_Surface *close_btn;
+   	int img_player_selected = 1;
+   	SDL_Surface *img_player1;
+   	SDL_Surface *img_player2;
+   	SDL_Surface *selection_img_player;
+
+	double frame_sound = 0;
+   	int screen = 1;
+
+	SDL_Surface *image[2];
+
 	/****************************** END-VARIABLES ****************************/
 	
-	if (SDL_Init(SDL_INIT_VIDEO) != 0 && IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG) != 0)
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         printf("SDL_Init Error: %s\n", SDL_GetError());
         return (1);
     }
 	SDL_Window *window = SDL_CreateWindow(
 		"Wolf3D",
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_CENTERED,
+		SDL_WINDOWPOS_CENTERED,
 		W_W,
 		W_H,
-		0);
+		SDL_WINDOW_SHOWN);
 	if (window == NULL)
     {
         printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
         SDL_Quit();
         return (1);
     }
-	SDL_Renderer *rend = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+	SDL_Renderer *rend = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	if (rend == NULL)
     {
         SDL_DestroyWindow(window);
@@ -656,15 +772,16 @@ int main(int argc, char *argv[])
         SDL_Quit();
         return (1);
     }
-	/************************ load textures **********************************/ 
-	SDL_Surface *wall = IMG_Load("resources/wall.png");
-	SDL_Surface *door = IMG_Load("resources/door1.jpg");
-	SDL_Surface *floor = IMG_Load("resources/floor.png");
-	SDL_Surface *ceil = IMG_Load("resources/ceil.png");
-	SDL_Surface *sky = IMG_Load("resources/sky.png");
-	SDL_Surface *key = IMG_Load("resources/pillar.png");
 
-	SDL_Surface *image[2];
+	if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024) != 0) //Initialisation de l'API Mixer
+   	{
+   	   printf("3%s", Mix_GetError());
+   	   return (1);
+   	}
+
+   	Mix_VolumeMusic(MIX_MAX_VOLUME/4);
+
+	/************************ load textures **********************************/ 
 
 	if (wall == NULL)
 	{
@@ -719,6 +836,195 @@ int main(int argc, char *argv[])
 		printf("create tx_key Error: %s\n", SDL_GetError());
         SDL_Quit();
 	}
+
+   	
+   	icon = IMG_Load("resources/sound.png");
+   	if (!icon)
+   	{
+   	   printf("4%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_sound_s;
+   	SDL_Rect rect_sound_d = (SDL_Rect){W_W - 60, 10, 50, 50};
+   	SDL_Texture *tx_icon = SDL_CreateTextureFromSurface(rend, icon);
+   	SDL_FreeSurface(icon);
+
+   	player1 = IMG_Load("resources/player1.png");
+   	if (!player1)
+   	{
+   	   printf("5%s", SDL_GetError());
+   	   return (1);
+   	}
+   	player2 = IMG_Load("resources/player2.png");
+   	if (!player2)
+   	{
+   	   printf("5%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_player_s;
+   	SDL_Rect rect_player_d = (SDL_Rect){W_W/2 - 200, W_H - 270, 400, 450};
+   	SDL_Texture *tx_player1 = SDL_CreateTextureFromSurface(rend, player1);
+   	SDL_Texture *tx_player2 = SDL_CreateTextureFromSurface(rend, player2);
+   	SDL_FreeSurface(player1);
+   	SDL_FreeSurface(player2);
+
+   	welcom_sc = IMG_Load("resources/welcom_sc.png");
+   	if (!welcom_sc)
+   	{
+   	   printf("6%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_welcom_sc_s;
+   	SDL_Rect rect_welcom_sc_d = (SDL_Rect){0, 0, W_W, W_H};
+   	SDL_Texture *tx_welcom_sc = SDL_CreateTextureFromSurface(rend, welcom_sc);
+   	SDL_FreeSurface(welcom_sc);
+
+   	wolf3d = IMG_Load("resources/wolf3d.png");
+   	if (!wolf3d)
+   	{
+   	   printf("7%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_wolf3d_s;
+   	SDL_Rect rect_wolf3d_d = (SDL_Rect){W_W/2-150, 50, 300, 126};
+   	SDL_Texture *tx_wolf3d = SDL_CreateTextureFromSurface(rend, wolf3d);
+   	SDL_FreeSurface(wolf3d);
+
+   	play = IMG_Load("resources/play.png");
+   	if (!play)
+   	{
+   	   printf("8%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_play_s;
+   	SDL_Rect rect_play_d = (SDL_Rect){W_W/2-150, W_H/2, 300, 160};
+   	SDL_Texture *tx_play = SDL_CreateTextureFromSurface(rend, play);
+   	SDL_FreeSurface(play);
+
+   	menu_icon = IMG_Load("resources/menu_icon.png");
+   	if (!menu_icon)
+   	{
+   	   printf("9%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_menu_icon_s;
+   	SDL_Rect rect_menu_icon_d = (SDL_Rect){10, 10, 50, 50};
+   	SDL_Texture *tx_menu_icon = SDL_CreateTextureFromSurface(rend, menu_icon);
+   	SDL_FreeSurface(menu_icon);
+
+   	menu_sc = IMG_Load("resources/menu_sc.png");
+   	if (!menu_sc)
+   	{
+   	   printf("10%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_menu_sc_s;
+   	SDL_Rect rect_menu_sc_d = (SDL_Rect){0, 0, W_W, W_H};
+   	SDL_Texture *tx_menu_sc = SDL_CreateTextureFromSurface(rend, menu_sc);
+   	SDL_FreeSurface(menu_sc);
+
+   	menu_btns = IMG_Load("resources/menu_buttons.png");
+   	if (!menu_btns)
+   	{
+   	   printf("11%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_menu_btns_home_s;
+   	SDL_Rect rect_menu_btns_home_d = (SDL_Rect){W_W/2 - 100, (W_H/6*0)+(12*1), 200, W_H/6};
+   	SDL_Rect rect_menu_btns_resume_s;
+   	SDL_Rect rect_menu_btns_resume_d = (SDL_Rect){W_W/2 - 100, (W_H/6*1)+(12*2), 200, W_H/6};
+   	SDL_Rect rect_menu_btns_restart_s;
+   	SDL_Rect rect_menu_btns_restart_d = (SDL_Rect){W_W/2 - 100, (W_H/6*2)+(12*3), 200, W_H/6};
+   	SDL_Rect rect_menu_btns_options_s;
+   	SDL_Rect rect_menu_btns_options_d = (SDL_Rect){W_W/2 - 100, (W_H/6*3)+(12*4), 200, W_H/6};
+   	SDL_Rect rect_menu_btns_exit_s;
+   	SDL_Rect rect_menu_btns_exit_d = (SDL_Rect){W_W/2 - 100, (W_H/6*4)+(12*5), 200, W_H/6};
+   	SDL_Texture *tx_menu_btns = SDL_CreateTextureFromSurface(rend, menu_btns);
+   	SDL_FreeSurface(menu_btns);
+
+   	options_pupop = IMG_Load("resources/options_pupop.png");
+   	if (!options_pupop)
+   	{
+   	   printf("12%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_options_pupop_s;
+   	SDL_Rect rect_options_pupop_d = (SDL_Rect){25, 25, W_W-50, W_H-50};
+   	SDL_Texture *tx_options_pupop = SDL_CreateTextureFromSurface(rend, options_pupop);
+   	SDL_FreeSurface(options_pupop);
+
+   	close_btn = IMG_Load("resources/close_btn.png");
+   	if (!close_btn)
+   	{
+   	   printf("13%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_close_btn_s;
+   	SDL_Rect rect_close_btn_d = (SDL_Rect){W_W - 55, 15, 40, 40};
+   	SDL_Texture *tx_close_btn = SDL_CreateTextureFromSurface(rend, close_btn);
+   	SDL_FreeSurface(close_btn);
+
+   	img_player1 = IMG_Load("resources/img_player1.png");
+   	if (!img_player1)
+   	{
+   	   printf("14%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_img_player1_s;
+   	SDL_Rect rect_img_player1_d = (SDL_Rect){W_W/5, W_H/2+W_H/6, W_W/9, W_H/2 - W_H/4};
+   	SDL_Texture *tx_img_player1 = SDL_CreateTextureFromSurface(rend, img_player1);
+   	SDL_FreeSurface(img_player1);
+
+   	img_player2 = IMG_Load("resources/img_player2.png");
+   	if (!img_player2)
+   	{
+   	   printf("15%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_img_player2_s;
+   	SDL_Rect rect_img_player2_d = (SDL_Rect){W_W-W_W/5-W_W/10, W_H/2+W_H/6, W_W/9, W_H/2 - W_H/4};
+   	SDL_Texture *tx_img_player2 = SDL_CreateTextureFromSurface(rend, img_player2);
+   	SDL_FreeSurface(img_player2);
+
+   	selection_img_player = IMG_Load("resources/selection_img_player.png");
+   	if (!selection_img_player)
+   	{
+   	   printf("16%s", SDL_GetError());
+   	   return (1);
+   	}
+
+   	SDL_Rect rect_selection_img_player_s;
+   	SDL_Rect rect_selection_img_player_d;
+   	SDL_Texture *tx_selection_img_player = SDL_CreateTextureFromSurface(rend, selection_img_player);
+   	SDL_FreeSurface(selection_img_player);
+
+   	Mix_Music *musique;
+   	musique = Mix_LoadMUS("resources/musique.wav");
+   	Mix_PlayMusic(musique, -1);
+
+   	Mix_AllocateChannels(2);
+   	Mix_Chunk *son1;
+   	Mix_Chunk *son2;
+   	son1 = Mix_LoadWAV("resources/running.wav");
+   	son2 = Mix_LoadWAV("resources/meow.wav");
+   	Mix_VolumeChunk(son1, MIX_MAX_VOLUME); //Mettre un volume pour ce wav
+   	Mix_VolumeChunk(son2, MIX_MAX_VOLUME);
+
+   	Mix_PlayChannel(0, son1, -1);//Joue le son1 1 sur le canal 1 ; le joue une fois (0 + 1)
+   	Mix_Pause(0);
+
 	t_obj	ob_key;
 	init_obj(&ob_key, 20*20, 20*20, 20, 820, 1694, "key", SDL_FLIP_NONE, 0.8, 0, 0, key->w);
 	//SDL_SetRenderDrawColor(rend, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -726,13 +1032,62 @@ int main(int argc, char *argv[])
 	SDL_bool minimap = SDL_FALSE;
 	SDL_bool texture = SDL_FALSE;
 	SDL_bool skybox = SDL_FALSE;
+	SDL_Event e;
 	while (is_run)
 	{
-		SDL_Event e;
 		while (SDL_PollEvent(&e))
 		{
 			if (e.type == SDL_QUIT)
 				is_run = SDL_FALSE;
+			if (e.type == SDL_MOUSEBUTTONDOWN)
+			{
+            	if (sound_press(e.button) && screen == 2 && options_pupop_showed == 0)
+            	{
+            	   if(Mix_PausedMusic() == 1) //Si la musique est en pause
+            	   {
+            	      frame_sound = 0;
+            	      Mix_ResumeMusic(); //Reprendre la musique
+            	   }
+            	   else
+            	   {
+            	      frame_sound = 1;
+            	      Mix_PauseMusic(); //Mettre en pause la musique
+            	   }
+            	}
+				if (play_press(e.button) && screen == 1 && options_pupop_showed == 0)
+               		screen = 2;
+
+            	if (menu_icon_press(e.button) && screen != 3 && options_pupop_showed == 0)
+            	{
+            	   previous_screen = screen;
+            	   screen = 3;
+            	}
+            	else if (menu_icon_press(e.button) && screen == 3 && options_pupop_showed == 0)
+            	   screen = previous_screen;
+            	if (close_btn_press(e.button) && options_pupop_showed == 1)
+            	   options_pupop_showed = 0;
+            	img_player_selected = img_player_press(e.button);
+            	if (img_player_selected && options_pupop_showed == 1)
+            	   player.player_num = img_player_selected;
+            	menu_btn_clicked = menu_buttons_press(e.button);
+            	if (menu_btn_clicked && screen == 3 && options_pupop_showed == 0)
+            	{
+            	   	if (menu_btn_clicked == 1)
+            	   		screen = 1;
+            	   	if (menu_btn_clicked == 2)
+            	   	{
+					   
+            	   	}
+            	   	if (menu_btn_clicked == 3)
+            	   	{
+					   
+            	   	}
+            	   	if (menu_btn_clicked == 4)
+            	   		options_pupop_showed = 1;
+            	   	if (menu_btn_clicked == 5)
+            			is_run   = SDL_FALSE;
+            	}
+			}
 			if (e.type == SDL_KEYDOWN)
 			{
 				if (e.key.keysym.sym == SDLK_ESCAPE)
@@ -745,16 +1100,108 @@ int main(int argc, char *argv[])
 					texture = !texture;
 				if (e.key.keysym.sym == SDLK_s)
 					skybox = !skybox;
-				
+			}
+			if (e.type == SDL_KEYDOWN)
+			{		
+				if (e.key.keysym.sym == SDLK_UP)
+				{
+                  	Mix_Resume(0);
+				}
+				if (e.key.keysym.sym == SDLK_DOWN)
+				{
+                  	Mix_Resume(0);
+				}
+			}
+			if (e.type == SDL_KEYUP)
+			{
+				if (e.key.keysym.sym == SDLK_UP)
+				{
+					player.frame_player_x = 4;
+   					player.frame_player_y = 1;
+					Mix_Pause(0);
+				}
+				if (e.key.keysym.sym == SDLK_DOWN)
+				{
+					player.frame_player_x = 4;
+   					player.frame_player_y = 0;
+					Mix_Pause(0);
+				}
 			}
 		}
+
 		SDL_RenderClear(rend);
-		update(&player, rend);
-		render(rend, skybox, texture, minimap, &player, image, floor, sky, ceil, tx_key, ob_key);
+		if (screen == 1)
+      	{
+      	   SDL_RenderClear(rend);
+      	   rect_welcom_sc_s = (SDL_Rect){0, 0, 612, 344};
+      	   rect_wolf3d_s = (SDL_Rect){0, 0, 867, 364};
+      	   rect_play_s = (SDL_Rect){0, 0, 313, 159};
+      	   rect_menu_icon_s = (SDL_Rect){0, 0, 673, 696};
+      	   SDL_RenderCopyEx(rend, tx_welcom_sc, &rect_welcom_sc_s, &rect_welcom_sc_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_wolf3d, &rect_wolf3d_s, &rect_wolf3d_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_play, &rect_play_s, &rect_play_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_menu_icon, &rect_menu_icon_s, &rect_menu_icon_d, 0, NULL, SDL_FLIP_NONE);
+      	}
+		if (screen == 2)
+      	{
+      	   	SDL_RenderClear(rend);
+			update(&player, rend);
+			render(rend, skybox, texture, minimap, &player, image, floor, sky, ceil, tx_key, ob_key);
+      	   	rect_menu_icon_s = (SDL_Rect){0, 0, 673, 696};
+      	   	rect_sound_s = (SDL_Rect){752 * frame_sound, 0, 752, 774};
+      	   	rect_player_s = (SDL_Rect){100 * player.frame_player_x, 100 * player.frame_player_y, 100, 100};
+      	   	SDL_RenderCopyEx(rend, tx_icon, &rect_sound_s, &rect_sound_d, 0, NULL, SDL_FLIP_NONE);
+      	   	if (player.player_num == 1)
+      	   	   SDL_RenderCopyEx(rend, tx_player1, &rect_player_s, &rect_player_d, 0, NULL, SDL_FLIP_NONE);
+      	   	else
+      	   	   SDL_RenderCopyEx(rend, tx_player2, &rect_player_s, &rect_player_d, 0, NULL, SDL_FLIP_NONE);
+      	   	SDL_RenderCopyEx(rend, tx_menu_icon, &rect_menu_icon_s, &rect_menu_icon_d, 0, NULL, SDL_FLIP_NONE);
+      	}
+		if (screen == 3)
+      	{
+      	   SDL_RenderClear(rend);
+      	   rect_menu_icon_s = (SDL_Rect){0, 0, 673, 696};
+      	   rect_menu_sc_s = (SDL_Rect){0, 0, 800, 600};
+      	   rect_menu_btns_home_s = (SDL_Rect){0, 0, 281, 137};
+      	   rect_menu_btns_resume_s = (SDL_Rect){0, 1*137, 281, 137};
+      	   rect_menu_btns_restart_s = (SDL_Rect){0, 2*137, 281, 137};
+      	   rect_menu_btns_options_s = (SDL_Rect){0, 3*137, 281, 137};
+      	   rect_menu_btns_exit_s = (SDL_Rect){0, 4*137, 281, 137};
+      	   SDL_RenderCopyEx(rend, tx_menu_sc, &rect_menu_sc_s, &rect_menu_sc_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_menu_icon, &rect_menu_icon_s, &rect_menu_icon_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_menu_btns, &rect_menu_btns_home_s, &rect_menu_btns_home_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_menu_btns, &rect_menu_btns_resume_s, &rect_menu_btns_resume_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_menu_btns, &rect_menu_btns_restart_s, &rect_menu_btns_restart_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_menu_btns, &rect_menu_btns_options_s, &rect_menu_btns_options_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_menu_btns, &rect_menu_btns_exit_s, &rect_menu_btns_exit_d, 0, NULL, SDL_FLIP_NONE);
+      	}
+		if (options_pupop_showed == 1)
+      	{
+      	   rect_options_pupop_s = (SDL_Rect){0, 0, 771, 638};
+      	   rect_close_btn_s = (SDL_Rect){0, 0, 300, 300};
+      	   rect_img_player1_s = (SDL_Rect){0, 0, 52, 92};
+      	   SDL_RenderCopyEx(rend, tx_options_pupop, &rect_options_pupop_s, &rect_options_pupop_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_close_btn, &rect_close_btn_s, &rect_close_btn_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_img_player1, &rect_img_player1_s, &rect_img_player1_d, 0, NULL, SDL_FLIP_NONE);
+      	   SDL_RenderCopyEx(rend, tx_img_player2, &rect_img_player1_s, &rect_img_player2_d, 0, NULL, SDL_FLIP_NONE);
+      	   if (player.player_num == 1)
+      	      rect_selection_img_player_d = rect_img_player1_d;
+      	   else
+      	      rect_selection_img_player_d = rect_img_player2_d;
+      	   SDL_RenderCopyEx(rend, tx_selection_img_player, &rect_img_player1_s, &rect_selection_img_player_d, 0, NULL, SDL_FLIP_NONE);
+      	}
 		SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
 		SDL_RenderPresent(rend);
 	}
+	Mix_FreeChunk(son1);//Libération du son 1
+   	Mix_FreeChunk(son2);
+	Mix_FreeMusic(musique); //Libération de la musique
+	SDL_DestroyTexture(tx_icon);
+   	SDL_DestroyTexture(tx_player1);
+   	SDL_DestroyTexture(tx_player2);
+	SDL_DestroyRenderer(rend);
 	SDL_DestroyWindow(window);
+	Mix_CloseAudio();
 	SDL_Quit();
 	return 0;
 }
