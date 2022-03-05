@@ -394,6 +394,7 @@ void env_reset(t_envirenment *env)
 	env->minimap = SDL_FALSE;
 	env->texture = SDL_FALSE;
 	env->skybox = SDL_FALSE;
+	env->bg_music_active = SDL_TRUE;
 }
 
 void update(SDL_Renderer *rend, t_player *player, t_envirenment *env)
@@ -1428,22 +1429,24 @@ int main(int argc, char *argv[])
 
 
 
-   	Mix_Music *musique;
-   	musique = Mix_LoadMUS("resources/musique.wav");
-   	Mix_PlayMusic(musique, -1);
+   	Mix_Music *music;
+   	music = Mix_LoadMUS("resources/music.wav");
+   	Mix_PlayMusic(music, -1);
 
-   	Mix_AllocateChannels(2);
+   	Mix_AllocateChannels(3);
    	// Mix_Chunk *son1;
    	// Mix_Chunk *son2;
    	env.foots_sound = Mix_LoadWAV("resources/running.wav");
    	env.coin_sound = Mix_LoadWAV("resources/coin_sound.wav");
+	env.bg_music = Mix_LoadWAV("resources/bg_music.wav");
    	Mix_VolumeChunk(env.foots_sound, MIX_MAX_VOLUME); //Mettre un volume pour ce wav
    	Mix_VolumeChunk(env.coin_sound, MIX_MAX_VOLUME);
+	Mix_VolumeChunk(env.bg_music, MIX_MAX_VOLUME/4);
 
    	Mix_PlayChannel(0, env.foots_sound, -1);//Joue le son1 1 sur le canal 1 ; le joue une fois (0 + 1)
-	
+	Mix_PlayChannel(2, env.bg_music, -1);
    	Mix_Pause(0);
-	// Mix_Pause(1);
+	Mix_Pause(2);
 	t_obj ob_sprites[env.num_sprites];
 	sprites_reset(ob_sprites, tx_sprites);
 	// printf("%f\n",ob_sprites[1].z);
@@ -1473,15 +1476,15 @@ int main(int argc, char *argv[])
 			{
             	if (sound_press(e.button) && env.screen == 2 && options_pupop_showed == 0)
             	{
-            	   if(Mix_PausedMusic() == 1) //Si la musique est en pause
+            	   if(Mix_PausedMusic() == 1) //Si la music est en pause
             	   {
             	      frame_sound = 0;
-            	      Mix_ResumeMusic(); //Reprendre la musique
+            	      Mix_ResumeMusic(); //Reprendre la music
             	   }
             	   else
             	   {
             	      frame_sound = 1;
-            	      Mix_PauseMusic(); //Mettre en pause la musique
+            	      Mix_PauseMusic(); //Mettre en pause la music
             	   }
             	}
 				if (play_press(e.button) && env.screen == 1)
@@ -1586,6 +1589,14 @@ int main(int argc, char *argv[])
 		}
 		SDL_RenderClear(rend);
 		if (env.screen == 1)
+			Mix_ResumeMusic();
+		else
+			Mix_PauseMusic();
+		if (env.screen == 2)
+			Mix_Resume(2);
+		else
+			Mix_Pause(2);
+		if (env.screen == 1)
       	{
       	   	SDL_RenderClear(rend);
       	   	rect_welcom_sc_s = (SDL_Rect){0, 0, 612, 344};
@@ -1686,7 +1697,7 @@ int main(int argc, char *argv[])
 	}
 	Mix_FreeChunk(env.foots_sound);//Libération du son 1
    	Mix_FreeChunk(env.coin_sound);
-	Mix_FreeMusic(musique); //Libération de la musique
+	Mix_FreeMusic(music); //Libération de la music
 	SDL_DestroyTexture(tx_icon);
    	SDL_DestroyTexture(tx_player1);
    	SDL_DestroyTexture(tx_player2);
