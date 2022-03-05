@@ -7,7 +7,7 @@
 #define numRays 600
 
 #include <math.h>
-#include <unistd.h>
+#include "./libft/libft.h"
 
 typedef struct	s_player
 {
@@ -59,7 +59,21 @@ typedef struct	s_texture
 
 typedef struct	s_environment
 {
-
+	int len_code;
+	char rust_code[6];
+	int screen;
+	int fps;
+	int frame_door;
+	SDL_bool code_valid;
+	int fade;
+	int num_sprites;
+	int solde;
+	Mix_Chunk *foots_sound;
+   	Mix_Chunk *coin_sound;
+	int mouse_x;
+	SDL_bool minimap;
+	SDL_bool texture;
+	SDL_bool skybox;
 }				t_envirenment;
 
 typedef struct  s_obj
@@ -69,13 +83,16 @@ typedef struct  s_obj
 	float               z;
     float               frameWidth;
     float               frameHigth;
-    char                *textureId;
-    SDL_RendererFlip    flip;
-    float               speed;
+    int                	state;
+    int    				size_x;
+	int    				size_y;
     float               frameCount;
     float               row;
 	float				h;
 	float				w;
 	float				surface_w;
+	SDL_Texture 		*texture;
+	float				dist_to_player;
+	int 				fps;
 }   			t_obj;
 #endif
