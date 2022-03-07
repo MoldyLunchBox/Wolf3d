@@ -197,7 +197,7 @@ int map[] =		//the map array. Edit to change level but keep the outer walls
 		1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,
 		1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,
 		1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1,
-		1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+		3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		
 };
@@ -355,7 +355,7 @@ void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites)
 	init_obj(&ob_sprites[1], 5*20, 3*20, 20, 600, 600, 1, 4, 4, 0, 0, 600, 2, tx_sprites[1]);
 	//enemy
 	init_obj(&ob_sprites[2], 5*20, 5*20, 20, 910, 1493, 2, 3, 2, 0, 0, 910, 2, tx_sprites[2]);
-	init_obj(&ob_sprites[3], 16*20, 3*20, 20, 910, 1493, 2, 3, 2, 0, 0, 910, 2, tx_sprites[2]);
+	init_obj(&ob_sprites[3], 16*20, 3*20, 20, 910, 1493, 2, 3, 2, 3, 0, 910, 2, tx_sprites[2]);
 	//coin
 	init_obj(&ob_sprites[4], 5*20, 8*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3]);
 	init_obj(&ob_sprites[5], 6*20, 9*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3]);
@@ -419,19 +419,35 @@ void update(SDL_Renderer *rend, t_player *player, t_envirenment *env)
 		dx += cos(player->a);
         dy -= sin(player->a);
 	}
+	if (keys[SDL_SCANCODE_A])
+    {
+		// player->frame_player_x+=2;
+        // player->frame_player_y = 0;
+       
+		dx -= cos(PI/2+player->a);
+        dy += cos(player->a);
+	}
+	if (keys[SDL_SCANCODE_D])
+    {
+		// player->frame_player_x+=2;
+        // player->frame_player_y = 1;
+		dx -= sin(player->a);
+        dy += sin(player->a);
+	}
 	player->a = -range_conversion_val(W_W, 0, 2*PI, -2*PI, env->mouse_x);
-	if (keys[SDL_SCANCODE_LEFT])
-	{
-		player->a += player->rotatSpeed;
-		if (player->a > 2 * PI)
-			player->a -= 2 * PI;
-	}
-	if (keys[SDL_SCANCODE_RIGHT])
-	{
-		player->a -= player->rotatSpeed;
-		if (player->a < 0)
-			player->a += 2 * PI;
-	}
+	// if (keys[SDL_SCANCODE_LEFT])
+	// {
+	// 	player->a += player->rotatSpeed;
+	// 	if (player->a > 2 * PI)
+	// 		player->a -= 2 * PI;
+	// }
+	// if (keys[SDL_SCANCODE_RIGHT])
+	// {
+	// 	player->a -= player->rotatSpeed;
+	// 	if (player->a < 0)
+	// 		player->a += 2 * PI;
+	// }
+
 	if (player->a > 2 * PI)
 			player->a -= 2 * PI;
 	if (player->frame_player_x > 20)
@@ -526,7 +542,7 @@ void draw_sprite(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envi
 					env->near_enemy--;
 			}
 			//player lose
-			if (player->x > ob_sprites[i].x - 10 && player->x < ob_sprites[i].x + 10 && player->y > ob_sprites[i].y - 10 && player->y < ob_sprites[i].y + 10)
+			if (player->x > ob_sprites[i].x - 8 && player->x < ob_sprites[i].x + 8 && player->y > ob_sprites[i].y - 8 && player->y < ob_sprites[i].y + 8)
 				env->screen = 5;
 		}
 		if (env->near_enemy > 0)
@@ -610,6 +626,8 @@ void render_view(SDL_Renderer *rend, t_player *player, t_ray r, t_texture t, SDL
 		(t.img) = walls[0];
 	if (t.num == 2)
 		(t.img) = doors[env->frame_door];
+	if (t.num == 3)
+		(t.img) = walls[1];
 	t.ty_step = (t.img)->w / (float)line_h;
 	t.ty_offset = 0;
 	if (line_h > W_H)
@@ -961,6 +979,7 @@ int main(int argc, char *argv[])
     }
 
 	SDL_Surface *wall = IMG_Load("resources/wall.png");
+	SDL_Surface *wall_code = IMG_Load("resources/wall_code.png");
 	SDL_Surface *door = IMG_Load("resources/door1.png");
 	SDL_Surface *floor = IMG_Load("resources/floor.png");
 	SDL_Surface *ceil = IMG_Load("resources/ceiling.png");
@@ -1025,37 +1044,6 @@ int main(int argc, char *argv[])
 
 	double frame_sound = 0;
 
-	SDL_Surface *walls[1];
-	walls[0] = wall;
-	SDL_Surface *doors[9];
-	doors[0] = door1;
-	doors[1] = door2;
-	doors[2] = door3;
-	doors[3] = door4;
-	doors[4] = door5;
-	doors[5] = door6;
-	doors[6] = door7;
-	doors[7] = door8;
-	doors[8] = door9;
-
-	// SDL_Surface *enemys[18];
-	// enemys[0] = enemy1;
-	// enemys[1] = enemy2;
-	// enemys[2] = enemy3;
-	// enemys[3] = enemy4;
-	// enemys[4] = enemy5;
-	// enemys[5] = enemy6;
-	// enemys[6] = enemy7;
-	// enemys[7] = enemy8;
-	// enemys[8] = enemy9;
-	// enemys[9] = enemy10;
-	// enemys[10] = enemy11;
-	// enemys[11] = enemy12;
-	// enemys[12] = enemy13;
-	// enemys[13] = enemy14;
-	// enemys[14] = enemy15;
-	// enemys[15] = enemy16;
-	// enemys[16] = enemy17;
 	/****************************** END-VARIABLES ****************************/
 	
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
@@ -1109,6 +1097,19 @@ int main(int argc, char *argv[])
     	return (1);
 	}
 
+	SDL_Surface *walls[2];
+	walls[0] = wall;
+	walls[1] = wall_code;
+	SDL_Surface *doors[9];
+	doors[0] = door1;
+	doors[1] = door2;
+	doors[2] = door3;
+	doors[3] = door4;
+	doors[4] = door5;
+	doors[5] = door6;
+	doors[6] = door7;
+	doors[7] = door8;
+	doors[8] = door9;
 
 	if (floor == NULL)
 	{
@@ -1192,7 +1193,7 @@ int main(int argc, char *argv[])
         SDL_Quit();
 	}
 	SDL_Rect rect_icon_coin_s = (SDL_Rect){0,0,512,512};
-	SDL_Rect rect_icon_coin_d = (SDL_Rect){W_W/2-35,10,30,30};
+	SDL_Rect rect_icon_coin_d;
 
 	SDL_Texture *tx_sprites[4];
 	tx_sprites[0] = tx_sprite1;
@@ -1257,18 +1258,7 @@ int main(int argc, char *argv[])
    	SDL_Rect rect_wolf3d_d = (SDL_Rect){W_W/2-150, 50, 300, 126};
    	SDL_Texture *tx_wolf3d = SDL_CreateTextureFromSurface(rend, wolf3d);
    	SDL_FreeSurface(wolf3d);
-	
 
-	// door_auto = IMG_Load("resources/door_auto.png");
-	// if (!door_auto)
-   	// {
-   	//    printf("7%s", SDL_GetError());
-   	//    return (1);
-   	// }
-   	// SDL_Rect rect_door_auto_s;
-   	// SDL_Rect rect_door_auto_d = (SDL_Rect){0, 0, 250, 250};
-   	// SDL_Texture *tx_door_auto = SDL_CreateTextureFromSurface(rend, door_auto);
-   	// SDL_FreeSurface(door_auto);
 
    	play = IMG_Load("resources/play.png");
    	if (!play)
@@ -1456,9 +1446,9 @@ int main(int argc, char *argv[])
    	env.coin_sound = Mix_LoadWAV("resources/coin_sound.wav");
 	env.bg_music = Mix_LoadWAV("resources/bg_music.wav");
 	env.enemy_sound = Mix_LoadWAV("resources/enemy_sound.wav");
-   	Mix_VolumeChunk(env.foots_sound, MIX_MAX_VOLUME); //Mettre un volume pour ce wav
+   	Mix_VolumeChunk(env.foots_sound, MIX_MAX_VOLUME/2); //Mettre un volume pour ce wav
    	Mix_VolumeChunk(env.coin_sound, MIX_MAX_VOLUME);
-	Mix_VolumeChunk(env.bg_music, MIX_MAX_VOLUME/6);
+	Mix_VolumeChunk(env.bg_music, 4);
 	Mix_VolumeChunk(env.enemy_sound, MIX_MAX_VOLUME/4);
 
 	
@@ -1468,15 +1458,14 @@ int main(int argc, char *argv[])
    	Mix_Pause(0);
 	Mix_Pause(2);
 	Mix_Pause(3);
+
 	t_obj ob_sprites[env.num_sprites];
 	sprites_reset(ob_sprites, tx_sprites);
-	// printf("%f\n",ob_sprites[1].z);
-	//SDL_SetRenderDrawColor(rend, 0, 0, 0, SDL_ALPHA_OPAQUE);
+	
 	SDL_bool is_run = SDL_TRUE;
 	
 	SDL_Event e;
 
-	int x;
 	while (is_run)
 	{
 		while (SDL_PollEvent(&e))
@@ -1558,9 +1547,10 @@ int main(int argc, char *argv[])
 				}
 				if (env.screen == 5)
 				{
-					env.screen = 1;
 					player_reset(&player);
+					env_reset(&env);
 					sprites_reset(ob_sprites, tx_sprites);
+					env.screen = 1;
 				}
 			}
 			if (e.type == SDL_KEYDOWN)
@@ -1644,6 +1634,7 @@ int main(int argc, char *argv[])
       	   	else
       	   	   SDL_RenderCopyEx(rend, tx_player2, &rect_player2_s, &rect_player_d, 0, NULL, SDL_FLIP_NONE);
       	   	SDL_RenderCopyEx(rend, tx_menu_icon, &rect_menu_icon_s, &rect_menu_icon_d, 0, NULL, SDL_FLIP_NONE);
+			rect_icon_coin_d = (SDL_Rect){W_W/2-35,10,30,30};
 			SDL_RenderCopyEx(rend, tx_sprite4, &rect_icon_coin_s, &rect_icon_coin_d, 0, NULL, SDL_FLIP_NONE);
 			write_text(rend, font2, ft_strjoin("x ", ft_itoa(env.solde)), W_W/2, 10);
 			if (env.fade > 0)
@@ -1687,10 +1678,13 @@ int main(int argc, char *argv[])
       	}
 		if (env.screen == 5)
       	{
+			Mix_Pause(3);
       	   	SDL_RenderClear(rend);
 			rect_lose_sc_s = (SDL_Rect){0, 0, 1624, 892};
 			SDL_RenderCopyEx(rend, tx_lose_sc, &rect_lose_sc_s, &rect_lose_sc_d, 0, NULL, SDL_FLIP_NONE);
-			
+			rect_icon_coin_d = (SDL_Rect){W_W/2-35,W_H/5,30,30};
+			SDL_RenderCopyEx(rend, tx_sprite4, &rect_icon_coin_s, &rect_icon_coin_d, 0, NULL, SDL_FLIP_NONE);
+			write_text(rend, font2, ft_strjoin("x ", ft_itoa(env.solde)), W_W/2, W_H/5);
       	}
 		if (strcmp(env.rust_code, " 1337") == 0 && env.screen == 4)
 		{
