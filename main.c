@@ -354,8 +354,8 @@ void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites)
 	init_obj(&ob_sprites[0], 4*20, 4*20, 20, 820, 1694, 1, 3, 1, 0, 0, 820, 2, tx_sprites[0]);
 	init_obj(&ob_sprites[1], 5*20, 3*20, 20, 600, 600, 1, 4, 4, 0, 0, 600, 2, tx_sprites[1]);
 	//enemy
-	init_obj(&ob_sprites[2], 5*20, 5*20, 20, 910, 1493, 1, 3, 2, 0, 0, 910, 2, tx_sprites[2]);
-	init_obj(&ob_sprites[3], 16*20, 3*20, 20, 910, 1493, 1, 3, 2, 0, 0, 910, 2, tx_sprites[2]);
+	init_obj(&ob_sprites[2], 5*20, 5*20, 20, 910, 1493, 2, 3, 2, 0, 0, 910, 2, tx_sprites[2]);
+	init_obj(&ob_sprites[3], 16*20, 3*20, 20, 910, 1493, 2, 3, 2, 0, 0, 910, 2, tx_sprites[2]);
 	//coin
 	init_obj(&ob_sprites[4], 5*20, 8*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3]);
 	init_obj(&ob_sprites[5], 6*20, 9*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3]);
@@ -395,6 +395,7 @@ void env_reset(t_envirenment *env)
 	env->texture = SDL_FALSE;
 	env->skybox = SDL_FALSE;
 	env->bg_music_active = SDL_TRUE;
+	env->near_enemy = 0;
 }
 
 void update(SDL_Renderer *rend, t_player *player, t_envirenment *env)
@@ -483,8 +484,9 @@ void sort_sprites(t_obj *ob_sprites, int num_sp)
 
 void draw_sprite(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envirenment *env)
 {
-	//enemy_movement
+	// enemy_movement
 	// enemy_animation(env, &ob_sprites[2]);
+	printf("%d\n",env->near_enemy);
 	for (int i = 0; i < env->num_sprites; i++)
 	{
 		if (ob_sprites[i].state == 2)
@@ -512,10 +514,25 @@ void draw_sprite(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envi
 				ob_sprites[i].y-=0.5;
 			if (ob_sprites[i].y < player->y && map[spy_add*mapX+spx] == 0)
 				ob_sprites[i].y+=0.5;
+				
+			if (player->x > ob_sprites[i].x - 40 && player->x < ob_sprites[i].x + 40 && player->y > ob_sprites[i].y - 40 && player->y < ob_sprites[i].y + 40)
+			{
+				if (env->near_enemy < 2)
+					env->near_enemy++;
+			}
+			else
+			{
+				if (env->near_enemy > 0)
+					env->near_enemy--;
+			}
 			//player lose
 			if (player->x > ob_sprites[i].x - 10 && player->x < ob_sprites[i].x + 10 && player->y > ob_sprites[i].y - 10 && player->y < ob_sprites[i].y + 10)
 				env->screen = 5;
 		}
+		if (env->near_enemy > 0)
+			Mix_Resume(3);
+		else
+			Mix_Pause(3);
 		if (ob_sprites[i].state == 3)
 		{
 			if (player->x > ob_sprites[i].x - 15 && player->x < ob_sprites[i].x + 15 && player->y > ob_sprites[i].y - 15 && player->y < ob_sprites[i].y + 15)
@@ -1433,20 +1450,24 @@ int main(int argc, char *argv[])
    	music = Mix_LoadMUS("resources/music.wav");
    	Mix_PlayMusic(music, -1);
 
-   	Mix_AllocateChannels(3);
-   	// Mix_Chunk *son1;
-   	// Mix_Chunk *son2;
+   	Mix_AllocateChannels(4);
+ 
    	env.foots_sound = Mix_LoadWAV("resources/running.wav");
    	env.coin_sound = Mix_LoadWAV("resources/coin_sound.wav");
 	env.bg_music = Mix_LoadWAV("resources/bg_music.wav");
+	env.enemy_sound = Mix_LoadWAV("resources/enemy_sound.wav");
    	Mix_VolumeChunk(env.foots_sound, MIX_MAX_VOLUME); //Mettre un volume pour ce wav
    	Mix_VolumeChunk(env.coin_sound, MIX_MAX_VOLUME);
-	Mix_VolumeChunk(env.bg_music, MIX_MAX_VOLUME/4);
+	Mix_VolumeChunk(env.bg_music, MIX_MAX_VOLUME/6);
+	Mix_VolumeChunk(env.enemy_sound, MIX_MAX_VOLUME/4);
 
+	
    	Mix_PlayChannel(0, env.foots_sound, -1);//Joue le son1 1 sur le canal 1 ; le joue une fois (0 + 1)
 	Mix_PlayChannel(2, env.bg_music, -1);
+	Mix_PlayChannel(3, env.enemy_sound, -1);
    	Mix_Pause(0);
 	Mix_Pause(2);
+	Mix_Pause(3);
 	t_obj ob_sprites[env.num_sprites];
 	sprites_reset(ob_sprites, tx_sprites);
 	// printf("%f\n",ob_sprites[1].z);
@@ -1476,19 +1497,20 @@ int main(int argc, char *argv[])
 			{
             	if (sound_press(e.button) && env.screen == 2 && options_pupop_showed == 0)
             	{
-            	   if(Mix_PausedMusic() == 1) //Si la music est en pause
+            	   if(Mix_Paused(2) == 1) //Si la music est en pause
             	   {
             	      frame_sound = 0;
-            	      Mix_ResumeMusic(); //Reprendre la music
+            	      Mix_Resume(2); //Reprendre la music
             	   }
             	   else
             	   {
             	      frame_sound = 1;
-            	      Mix_PauseMusic(); //Mettre en pause la music
+            	      Mix_Pause(2); //Mettre en pause la music
             	   }
             	}
 				if (play_press(e.button) && env.screen == 1)
 				{
+					Mix_Resume(2);
 					SDL_Rect r = (SDL_Rect){0,0,W_W,W_H};
                		env.screen = 2;
 					for (int i=255;i>0;i--)
@@ -1589,13 +1611,12 @@ int main(int argc, char *argv[])
 		}
 		SDL_RenderClear(rend);
 		if (env.screen == 1)
+		{
+			Mix_Pause(2);
 			Mix_ResumeMusic();
+		}
 		else
 			Mix_PauseMusic();
-		if (env.screen == 2)
-			Mix_Resume(2);
-		else
-			Mix_Pause(2);
 		if (env.screen == 1)
       	{
       	   	SDL_RenderClear(rend);

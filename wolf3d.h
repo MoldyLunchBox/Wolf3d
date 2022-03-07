@@ -71,11 +71,13 @@ typedef struct	s_environment
 	Mix_Chunk *foots_sound;
    	Mix_Chunk *coin_sound;
 	Mix_Chunk *bg_music;
+	Mix_Chunk *enemy_sound;
 	int mouse_x;
 	SDL_bool minimap;
 	SDL_bool texture;
 	SDL_bool skybox;
 	SDL_bool bg_music_active;
+	int		near_enemy;
 }				t_envirenment;
 
 typedef struct  s_obj
