@@ -7,6 +7,9 @@
         "vector": "c",
         "__node_handle": "c",
         "__bit_reference": "c",
-        "bitset": "c"
+        "bitset": "c",
+        "algorithm": "c",
+        "chrono": "c",
+        "unordered_map": "c"
     }
 }

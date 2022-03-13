@@ -78,20 +78,6 @@ int close_btn_press(SDL_MouseButtonEvent b)
    return (0);
 }
 
-int img_player_press(SDL_MouseButtonEvent b)
-{
-   if(b.button == SDL_BUTTON_LEFT){
-      if (b.y >= W_H/2+W_H/6 && b.y <= W_H/2+W_H/6+W_H/2-W_H/4)
-      {
-         if (b.x >= W_W/5 && b.x <= W_W/5 + W_W/9)
-            return (1);
-         if (b.x >= W_W-W_W/5-W_W/10 && b.x <= W_W-W_W/5-W_W/10 + W_W/9)
-            return (2);
-      }
-   }
-   return (0);
-}
-
 int back_btn_press(SDL_MouseButtonEvent b)
 {
    if(b.button == SDL_BUTTON_LEFT){
@@ -100,13 +86,6 @@ int back_btn_press(SDL_MouseButtonEvent b)
    }
    return (0);
 }
-
-// int open_view(int tex)
-// {
-	
-// 	if (tex == 2 && )
-// 		return (1);
-// }
 
 float dtor(float d)
 {
@@ -207,7 +186,7 @@ void    create_obj(t_obj *obj)
     obj = (t_obj*)malloc(sizeof(t_obj));
 }
 
-void    init_obj(t_obj *obj, float x, float y, float z, float frameWidth, float frameHigth, int state, int size_x, float size_y, float frameCount, float row, float surface_w, int fps, SDL_Texture *texture)
+void    init_obj(t_obj *obj, float x, float y, float z, float frameWidth, float frameHigth, int state, int size_x, float size_y, float frameCount, float row, float surface_w, int fps, SDL_Texture *texture, SDL_bool alive)
 {
     obj->x = x;
     obj->y = y;
@@ -222,6 +201,7 @@ void    init_obj(t_obj *obj, float x, float y, float z, float frameWidth, float 
 	obj->surface_w = surface_w;
 	obj->fps = fps;
 	obj->texture = texture;
+	obj->alive = alive;
 }
 
 Uint32 getpixel(SDL_Surface *surface, int x, int y)
@@ -279,7 +259,24 @@ float safe_angle_180(float a)
 			a += PI;
 	return (a);
 }
-void safe_map(t_player *player, float pdx, float pdy)
+
+SDL_bool hit_sprites(t_player *player, t_obj *ob_sprites, t_envirenment *env)
+{
+	int s;
+	SDL_bool safe = SDL_TRUE;
+
+	for (s = 0; s < env->num_sprites; s++)
+	{
+		if ((ob_sprites[s].state == 1 || ob_sprites[s].state == 2) && ob_sprites[s].dist_to_player < 15)
+		{
+			printf("%f\n", ob_sprites[s].dist_to_player);
+			safe = SDL_FALSE;
+		}
+	}
+	return (safe);
+}
+
+void safe_map(t_player *player, float pdx, float pdy, t_obj *ob_sprites, t_envirenment *env)
 {	
 	int x0=0;
 	int y0=0;
@@ -297,12 +294,12 @@ void safe_map(t_player *player, float pdx, float pdy)
 	int ipy=player->y/cellS;
 	int ipy_add_y0=(player->y+y0)/cellS;
 	int ipy_sub_y0=(player->y-y0)/cellS;
-
-	if (ipy*mapX + ipx_add_x0 != 0 && map[ipy*mapX + ipx_add_x0] == 0)
+	if ((ipy*mapX + ipx_add_x0 != 0 && map[ipy*mapX + ipx_add_x0] == 0))
 		player->x+=pdx*player->speed;
-	if (ipy_add_y0*mapX + ipx != 0 && map[ipy_add_y0*mapX + ipx] == 0)
+	if ((ipy_add_y0*mapX + ipx != 0 && map[ipy_add_y0*mapX + ipx] == 0))
 		player->y+=pdy*player->speed;
 }
+
 
 void show_door_code(t_player *player, float pdx, float pdy, t_envirenment *env)
 {
@@ -351,16 +348,16 @@ void open_door(t_player *player, float pdx, float pdy, t_envirenment *env)
 void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites)
 {
 	//static
-	init_obj(&ob_sprites[0], 4*20, 4*20, 20, 820, 1694, 1, 3, 1, 0, 0, 820, 2, tx_sprites[0]);
-	init_obj(&ob_sprites[1], 5*20, 3*20, 20, 600, 600, 1, 4, 4, 0, 0, 600, 2, tx_sprites[1]);
+	init_obj(&ob_sprites[0], 4*20, 4*20, 20, 820, 1694, 1, 3, 1, 0, 0, 820, 2, tx_sprites[0], SDL_TRUE);
+	init_obj(&ob_sprites[1], 5*20, 3*20, 20, 600, 600, 1, 4, 4, 0, 0, 600, 2, tx_sprites[1], SDL_TRUE);
 	//enemy
-	init_obj(&ob_sprites[2], 5*20, 5*20, 20, 910, 1493, 2, 3, 2, 0, 0, 910, 2, tx_sprites[2]);
-	init_obj(&ob_sprites[3], 16*20, 3*20, 20, 910, 1493, 2, 3, 2, 3, 0, 910, 2, tx_sprites[2]);
+	init_obj(&ob_sprites[2], 5*20, 5*20, 20, 910, 1493, 2, 3, 2, 0, 0, 910, 2, tx_sprites[2], SDL_TRUE);
+	init_obj(&ob_sprites[3], 16*20, 3*20, 20, 910, 1493, 2, 3, 2, 3, 0, 910, 2, tx_sprites[2], SDL_TRUE);
 	//coin
-	init_obj(&ob_sprites[4], 5*20, 8*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3]);
-	init_obj(&ob_sprites[5], 6*20, 9*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3]);
-	init_obj(&ob_sprites[6], 7*20, 10*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3]);
-	init_obj(&ob_sprites[7], 15*20, 3*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3]);
+	init_obj(&ob_sprites[4], 5*20, 8*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3], SDL_TRUE);
+	init_obj(&ob_sprites[5], 6*20, 9*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3], SDL_TRUE);
+	init_obj(&ob_sprites[6], 7*20, 10*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3], SDL_TRUE);
+	init_obj(&ob_sprites[7], 15*20, 3*20, 20, 512, 512, 3, 5, 5, 0, 0, 512, 2, tx_sprites[3], SDL_TRUE);
 }
 
 void player_reset(t_player *player)
@@ -372,11 +369,13 @@ void player_reset(t_player *player)
 	player->size = cellS / 5;
 	player->speed = 4;
 	player->fov = 60.0;
-	player->player_num = 1;
-	player->frame_player_x = 1;
-   	player->frame_player_y = 1;
+	player->frame_gun_x = 0;
+	player->frame_gun_y = 0;
+	player->gun_animation = SDL_FALSE;
+	player->is_shoot = SDL_FALSE;
 	map[56]=2;
-
+	player->blood = W_W/4;
+	player->life = (SDL_Rect){40, W_H - 32, player->blood, 5};
 }
 
 void env_reset(t_envirenment *env)
@@ -398,7 +397,7 @@ void env_reset(t_envirenment *env)
 	env->near_enemy = 0;
 }
 
-void update(SDL_Renderer *rend, t_player *player, t_envirenment *env)
+void update(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envirenment *env)
 {
 	const uint8_t* keys = SDL_GetKeyboardState(NULL);
 
@@ -406,55 +405,27 @@ void update(SDL_Renderer *rend, t_player *player, t_envirenment *env)
 
 	if (keys[SDL_SCANCODE_S])
     {
-		player->frame_player_x+=2;
-        player->frame_player_y = 0;
-       
 		dx -= cos(player->a);
         dy += sin(player->a);
 	}
 	if (keys[SDL_SCANCODE_W])
     {
-		player->frame_player_x+=2;
-        player->frame_player_y = 1;
 		dx += cos(player->a);
         dy -= sin(player->a);
 	}
 	if (keys[SDL_SCANCODE_A])
     {
-		// player->frame_player_x+=2;
-        // player->frame_player_y = 0;
-       
-		dx -= cos(PI/2+player->a);
-        dy += cos(player->a);
 	}
 	if (keys[SDL_SCANCODE_D])
     {
-		// player->frame_player_x+=2;
-        // player->frame_player_y = 1;
-		dx -= sin(player->a);
-        dy += sin(player->a);
 	}
-	player->a = -range_conversion_val(W_W, 0, 2*PI, -2*PI, env->mouse_x);
-	// if (keys[SDL_SCANCODE_LEFT])
-	// {
-	// 	player->a += player->rotatSpeed;
-	// 	if (player->a > 2 * PI)
-	// 		player->a -= 2 * PI;
-	// }
-	// if (keys[SDL_SCANCODE_RIGHT])
-	// {
-	// 	player->a -= player->rotatSpeed;
-	// 	if (player->a < 0)
-	// 		player->a += 2 * PI;
-	// }
-
+	player->a = -range_conversion_val(W_W, 0, 4*PI, -4*PI, env->mouse_x);
+	
 	if (player->a > 2 * PI)
 			player->a -= 2 * PI;
-	if (player->frame_player_x > 20)
-       player->frame_player_x = 0;
-    if (player->frame_player_x < 0)
-       player->frame_player_x = 20;
-	safe_map(player, dx, dy);
+	// if (hit_sprites(player, ob_sprites, env) == SDL_TRUE)
+		safe_map(player, dx, dy, ob_sprites, env);
+	//hit_sprites(player, ob_sprites, env);
 	show_door_code(player, dx, dy, env);
 	if (env->code_valid)
 		open_door(player, dx, dy, env);
@@ -501,8 +472,6 @@ void sort_sprites(t_obj *ob_sprites, int num_sp)
 void draw_sprite(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envirenment *env)
 {
 	// enemy_movement
-	// enemy_animation(env, &ob_sprites[2]);
-	printf("%d\n",env->near_enemy);
 	for (int i = 0; i < env->num_sprites; i++)
 	{
 		if (ob_sprites[i].state == 2)
@@ -522,16 +491,18 @@ void draw_sprite(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envi
 			int spy_add = ((int)ob_sprites[i].y + 15)/cellS;
 			int spx_sub = ((int)ob_sprites[i].x - 15)/cellS;
 			int spy_sub = ((int)ob_sprites[i].y - 15)/cellS;
-			if (ob_sprites[i].x > player->x && map[spy*mapX+spx_sub] == 0)
-				ob_sprites[i].x-=0.5;
-			if (ob_sprites[i].x < player->x && map[spy*mapX+spx_add] == 0)
-				ob_sprites[i].x+=0.5;
-			if (ob_sprites[i].y > player->y && map[spy_sub*mapX+spx] == 0)
-				ob_sprites[i].y-=0.5;
-			if (ob_sprites[i].y < player->y && map[spy_add*mapX+spx] == 0)
-				ob_sprites[i].y+=0.5;
-				
-			if (player->x > ob_sprites[i].x - 40 && player->x < ob_sprites[i].x + 40 && player->y > ob_sprites[i].y - 40 && player->y < ob_sprites[i].y + 40)
+			if (distance(player->x, player->y, ob_sprites[i].x, ob_sprites[i].y) > 10 && ob_sprites[i].alive)
+			{
+				if (ob_sprites[i].x > player->x && map[spy*mapX+spx_sub] == 0)
+					ob_sprites[i].x-=0.5;
+				if (ob_sprites[i].x < player->x && map[spy*mapX+spx_add] == 0)
+					ob_sprites[i].x+=0.5;
+				if (ob_sprites[i].y > player->y && map[spy_sub*mapX+spx] == 0)
+					ob_sprites[i].y-=0.5;
+				if (ob_sprites[i].y < player->y && map[spy_add*mapX+spx] == 0)
+					ob_sprites[i].y+=0.5;
+			}
+			if (distance(player->x, player->y, ob_sprites[i].x, ob_sprites[i].y) < 50)
 			{
 				if (env->near_enemy < 2)
 					env->near_enemy++;
@@ -542,7 +513,12 @@ void draw_sprite(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envi
 					env->near_enemy--;
 			}
 			//player lose
-			if (player->x > ob_sprites[i].x - 8 && player->x < ob_sprites[i].x + 8 && player->y > ob_sprites[i].y - 8 && player->y < ob_sprites[i].y + 8)
+			if (distance(player->x, player->y, ob_sprites[i].x, ob_sprites[i].y) < 11)
+			{
+				player->blood--;
+				player->life = (SDL_Rect){40, W_H - 32, player->blood, 5};
+			}
+			if (player->blood < 0)
 				env->screen = 5;
 		}
 		if (env->near_enemy > 0)
@@ -555,7 +531,7 @@ void draw_sprite(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envi
 			{
 				Mix_PlayChannel(1, env->coin_sound, 0);
 				ob_sprites[i].state = 0;
-				env->solde+=1;
+				env->solde+=10;
 			}
 		}
 	}
@@ -590,6 +566,24 @@ void draw_sprite(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envi
 				ob_sprites[i].h = ((WALL_H * 220) / ob_sprites[i].dist_to_player)/ob_sprites[i].size_y;
 				ob_sprites[i].w = ((WALL_H * 220) / ob_sprites[i].dist_to_player)/ob_sprites[i].size_x;
 				float sx = range_conversion_val(dtor(player->fov/2), -dtor(player->fov/2), W_W , 0-ob_sprites[i].w, diff_angles); //ob_sprites[i].size decalage pour sprite width
+				if (ob_sprites[i].state == 2)
+				{
+					//kill enemy
+					if (player->is_shoot)
+					{
+						if (sx <= W_W/2 && sx + ob_sprites[i].w >= W_W/2)
+						{
+							ob_sprites[i].alive = SDL_FALSE;
+							ob_sprites[i].row = 1;
+							ob_sprites[i].frameCount = 0;
+						}
+					}
+					if (!ob_sprites[i].alive)
+					{
+						if (ob_sprites[i].frameCount == 16)
+							ob_sprites[i].state = 1;
+					}
+				}
 				for (int j = (int)sx; j < (int)sx + ob_sprites[i].w; j++)
 				{
 					if (ob_sprites[i].dist_to_player < player->dist[j])
@@ -654,6 +648,7 @@ void render_view(SDL_Renderer *rend, t_player *player, t_ray r, t_texture t, SDL
 			t.tx=((t.img)->w-1)-t.tx; // flip direction left/right
 	}
 	//wall
+	float darkness = range_conversion_val(cellS*24, 0, 0,1, r.dist);
 	for (y = 0; y < line_h; y++)
 	{
 		line.y = (W_H / 2) - (line_h / 2) + y; //offset to center
@@ -666,13 +661,14 @@ void render_view(SDL_Renderer *rend, t_player *player, t_ray r, t_texture t, SDL
 			SDL_Color rgb;
 			Uint32 data = getpixel((t.img), (int)(t.tx), (int)(t.ty));
 			SDL_GetRGB(data, (t.img)->format, &rgb.r, &rgb.g, &rgb.b);
-			SDL_SetRenderDrawColor(rend, rgb.r*r.shade, rgb.g*r.shade, rgb.b*r.shade, 255);
+			SDL_SetRenderDrawColor(rend, rgb.r*r.shade*darkness, rgb.g*r.shade*darkness, rgb.b*r.shade*darkness, 255);
 		}
 		SDL_RenderFillRect(rend, &line);
 		t.ty+=t.ty_step;
 	}
 	for (y = (W_H / 2) + (line_h / 2); y < W_H; y++)
 	{
+		darkness = range_conversion_val(W_H, (W_H / 2), 1,0, y);
 		// draw floor
 		line.y = y;
 		float dy = y-(W_H/2.0);
@@ -690,7 +686,7 @@ void render_view(SDL_Renderer *rend, t_player *player, t_ray r, t_texture t, SDL
 		{
 			data = getpixel(floor, (int)(t.tx)&(floor->w-1), (int)(t.ty)&(floor->w-1));
 			SDL_GetRGB(data, floor->format, &rgb.r, &rgb.g, &rgb.b);
-			SDL_SetRenderDrawColor(rend, rgb.r, rgb.g, rgb.b, 255);
+			SDL_SetRenderDrawColor(rend, rgb.r*darkness, rgb.g*darkness, rgb.b*darkness, 255);
 		}
 		SDL_RenderFillRect(rend, &line);
 		// draw ceiling
@@ -901,15 +897,15 @@ void	draw_sky(SDL_Renderer *rend, SDL_Surface *sky, t_player *player)
 {
 	int x, y, x0;
 
-	for(x=0; x<600; x++)
+	for(x=0; x<1124; x++)
 	{
 
 		for(y=0; y<300; y++)
 		{			
-			x0 = (int)(player->a*5 / PI * 180.0f) - x;
+			x0 = (int)(player->a*3 / PI * 180.0f) - x;
 			if (x0 < 0)
-				x0+=800;
-			x0=x0%800;
+				x0+=1124;
+			x0=x0%1124;
 			SDL_Color rgb;
 			Uint32 data = getpixel(sky, x0, y);
 			SDL_GetRGB(data, sky->format, &rgb.r, &rgb.g, &rgb.b);
@@ -983,7 +979,7 @@ int main(int argc, char *argv[])
 	SDL_Surface *door = IMG_Load("resources/door1.png");
 	SDL_Surface *floor = IMG_Load("resources/floor.png");
 	SDL_Surface *ceil = IMG_Load("resources/ceiling.png");
-	SDL_Surface *sky = IMG_Load("resources/menu_sc.png");
+	SDL_Surface *sky = IMG_Load("resources/night_sky.png");
 	SDL_Surface *sprite1 = IMG_Load("resources/pillar.png");
 	SDL_Surface *sprite2 = IMG_Load("resources/ball.png");
 	SDL_Surface *sprite3 = IMG_Load("resources/enemy.png");
@@ -999,24 +995,16 @@ int main(int argc, char *argv[])
 	SDL_Surface *door8 = IMG_Load("resources/door8.png");
 	SDL_Surface *door9 = IMG_Load("resources/door9.png");
 	
-	
-	// SDL_Surface *enemy1 = IMG_Load("resources/e1.png");
-	// SDL_Surface *enemy2 = IMG_Load("resources/e2.png");
-	// SDL_Surface *enemy3 = IMG_Load("resources/e3.png");
-	// SDL_Surface *enemy4 = IMG_Load("resources/e4.png");
-	// SDL_Surface *enemy5 = IMG_Load("resources/e5.png");
-	// SDL_Surface *enemy6 = IMG_Load("resources/e6.png");
-	// SDL_Surface *enemy7 = IMG_Load("resources/e7.png");
-	// SDL_Surface *enemy8 = IMG_Load("resources/e8.png");
-	// SDL_Surface *enemy9 = IMG_Load("resources/e9.png");
-	// SDL_Surface *enemy10 = IMG_Load("resources/e10.png");
-	// SDL_Surface *enemy11 = IMG_Load("resources/e11.png");
-	// SDL_Surface *enemy12 = IMG_Load("resources/e12.png");
-	// SDL_Surface *enemy13 = IMG_Load("resources/e13.png");
-	// SDL_Surface *enemy14 = IMG_Load("resources/e14.png");
-	// SDL_Surface *enemy15 = IMG_Load("resources/e15.png");
-	// SDL_Surface *enemy16 = IMG_Load("resources/e16.png");
-	// SDL_Surface *enemy17 = IMG_Load("resources/e17.png");
+	SDL_Surface *shoot1 = IMG_Load("resources/shoot/shoot1.png");
+	SDL_Surface *shoot2 = IMG_Load("resources/shoot/shoot2.png");
+	SDL_Surface *shoot3 = IMG_Load("resources/shoot/shoot3.png");
+	SDL_Surface *shoot4 = IMG_Load("resources/shoot/shoot4.png");
+	SDL_Surface *shoot5 = IMG_Load("resources/shoot/shoot5.png");
+	SDL_Surface *shoot6 = IMG_Load("resources/shoot/shoot6.png");
+	SDL_Surface *shoot7 = IMG_Load("resources/shoot/shoot7.png");
+	SDL_Surface *shoot8 = IMG_Load("resources/shoot/shoot8.png");
+	SDL_Surface *shoot9 = IMG_Load("resources/shoot/shoot9.png");
+
 	
    	SDL_Surface *welcom_sc;
    	SDL_Surface *wolf3d;
@@ -1024,8 +1012,6 @@ int main(int argc, char *argv[])
 	SDL_Surface *quit;
    	SDL_Surface *menu_icon;
    	SDL_Surface *icon;
-   	SDL_Surface *player1;
-   	SDL_Surface *player2;
    	SDL_Surface *menu_sc;
    	SDL_Surface *menu_btns;
    	int menu_btn_clicked = 0;
@@ -1033,19 +1019,16 @@ int main(int argc, char *argv[])
    	SDL_Surface *options_pupop;
    	int options_pupop_showed = 0;
    	SDL_Surface *close_btn;
-   	int img_player_selected = 1;
-   	SDL_Surface *img_player1;
-   	SDL_Surface *img_player2;
-   	SDL_Surface *selection_img_player;
 	SDL_Surface *rust_code_sc;
 	SDL_Surface *back_btn;
 	SDL_Surface *calculator;
 	SDL_Surface *lose_sc;
+	SDL_Surface *gun;
+	SDL_Surface *aim;
+	SDL_Surface *heart;
 
 	double frame_sound = 0;
-
 	/****************************** END-VARIABLES ****************************/
-	
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         printf("SDL_Init Error: %s\n", SDL_GetError());
@@ -1110,7 +1093,16 @@ int main(int argc, char *argv[])
 	doors[6] = door7;
 	doors[7] = door8;
 	doors[8] = door9;
-
+	SDL_Surface *shoots[9];
+	shoots[0] = shoot1;
+	shoots[1] = shoot2;
+	shoots[2] = shoot3;
+	shoots[3] = shoot4;
+	shoots[4] = shoot5;
+	shoots[5] = shoot6;
+	shoots[6] = shoot7;
+	shoots[7] = shoot8;
+	shoots[8] = shoot9;
 	if (floor == NULL)
 	{
     	printf("Failed to load image at 'resource/floor.png': %s\n", SDL_GetError());
@@ -1213,26 +1205,6 @@ int main(int argc, char *argv[])
    	SDL_Texture *tx_icon = SDL_CreateTextureFromSurface(rend, icon);
    	SDL_FreeSurface(icon);
 
-   	player1 = IMG_Load("resources/player1.png");
-   	if (!player1)
-   	{
-   	   printf("5%s", SDL_GetError());
-   	   return (1);
-   	}
-   	player2 = IMG_Load("resources/player2.png");
-   	if (!player2)
-   	{
-   	   printf("5%s", SDL_GetError());
-   	   return (1);
-   	}
-
-   	SDL_Rect rect_player1_s;
-	SDL_Rect rect_player2_s;
-   	SDL_Rect rect_player_d = (SDL_Rect){W_W/2 - 150, W_H - 300, 300, 650};
-   	SDL_Texture *tx_player1 = SDL_CreateTextureFromSurface(rend, player1);
-   	SDL_Texture *tx_player2 = SDL_CreateTextureFromSurface(rend, player2);
-   	SDL_FreeSurface(player1);
-   	SDL_FreeSurface(player2);
 
    	welcom_sc = IMG_Load("resources/welcom_sc.png");
    	if (!welcom_sc)
@@ -1352,40 +1324,6 @@ int main(int argc, char *argv[])
    	SDL_Texture *tx_close_btn = SDL_CreateTextureFromSurface(rend, close_btn);
    	SDL_FreeSurface(close_btn);
 
-   	img_player1 = IMG_Load("resources/img_player1.png");
-   	if (!img_player1)
-   	{
-   	   printf("14%s", SDL_GetError());
-   	   return (1);
-   	}
-
-   	SDL_Rect rect_img_player1_s;
-   	SDL_Rect rect_img_player1_d = (SDL_Rect){W_W/5, W_H/2+W_H/6, W_W/9, W_H/2 - W_H/4};
-   	SDL_Texture *tx_img_player1 = SDL_CreateTextureFromSurface(rend, img_player1);
-   	SDL_FreeSurface(img_player1);
-
-   	img_player2 = IMG_Load("resources/img_player2.png");
-   	if (!img_player2)
-   	{
-   	   printf("15%s", SDL_GetError());
-   	   return (1);
-   	}
-
-   	SDL_Rect rect_img_player2_s;
-   	SDL_Rect rect_img_player2_d = (SDL_Rect){W_W-W_W/5-W_W/10, W_H/2+W_H/6, W_W/9, W_H/2 - W_H/4};
-   	SDL_Texture *tx_img_player2 = SDL_CreateTextureFromSurface(rend, img_player2);
-   	SDL_FreeSurface(img_player2);
-
-   	selection_img_player = IMG_Load("resources/selection_img_player.png");
-   	if (!selection_img_player)
-   	{
-   	   printf("16%s", SDL_GetError());
-   	   return (1);
-   	}
-   	SDL_Rect rect_selection_img_player_s;
-   	SDL_Rect rect_selection_img_player_d;
-   	SDL_Texture *tx_selection_img_player = SDL_CreateTextureFromSurface(rend, selection_img_player);
-   	SDL_FreeSurface(selection_img_player);
 
 	rust_code_sc = IMG_Load("resources/rust_code_sc.png");
    	if (!rust_code_sc)
@@ -1435,21 +1373,49 @@ int main(int argc, char *argv[])
    	SDL_FreeSurface(lose_sc);
 
 
+   	SDL_Rect rect_gun_s;
+   	SDL_Rect rect_gun_d = (SDL_Rect){W_W/2-250, W_H-280, 500, 280};
+   	SDL_Texture *tx_gun;
+   	SDL_FreeSurface(gun);
+
+	aim = IMG_Load("resources/aim.png");
+   	if (!aim)
+   	{
+   	   printf("4%s", SDL_GetError());
+   	   return (1);
+   	}
+	SDL_Rect rect_aim_s;
+   	SDL_Rect rect_aim_d = (SDL_Rect){W_W/2-20, W_H/2+5, 40, 40};
+   	SDL_Texture *tx_aim = SDL_CreateTextureFromSurface(rend, aim);
+   	SDL_FreeSurface(aim);
+
+	heart = IMG_Load("resources/heart.png");
+   	if (!heart)
+   	{
+   	   printf("4%s", SDL_GetError());
+   	   return (1);
+   	}
+	SDL_Rect rect_heart_s;
+   	SDL_Rect rect_heart_d = (SDL_Rect){10, W_H-50, 40, 40};
+   	SDL_Texture *tx_heart = SDL_CreateTextureFromSurface(rend, heart);
+   	SDL_FreeSurface(heart);
 
    	Mix_Music *music;
    	music = Mix_LoadMUS("resources/music.wav");
    	Mix_PlayMusic(music, -1);
 
-   	Mix_AllocateChannels(4);
+   	Mix_AllocateChannels(5);
  
    	env.foots_sound = Mix_LoadWAV("resources/running.wav");
    	env.coin_sound = Mix_LoadWAV("resources/coin_sound.wav");
 	env.bg_music = Mix_LoadWAV("resources/bg_music.wav");
 	env.enemy_sound = Mix_LoadWAV("resources/enemy_sound.wav");
+	env.gun_fire_sound = Mix_LoadWAV("resources/gun_fire_sound.wav");
    	Mix_VolumeChunk(env.foots_sound, MIX_MAX_VOLUME/2); //Mettre un volume pour ce wav
    	Mix_VolumeChunk(env.coin_sound, MIX_MAX_VOLUME);
 	Mix_VolumeChunk(env.bg_music, 4);
 	Mix_VolumeChunk(env.enemy_sound, MIX_MAX_VOLUME/4);
+	Mix_VolumeChunk(env.gun_fire_sound, MIX_MAX_VOLUME);
 
 	
    	Mix_PlayChannel(0, env.foots_sound, -1);//Joue le son1 1 sur le canal 1 ; le joue une fois (0 + 1)
@@ -1465,7 +1431,6 @@ int main(int argc, char *argv[])
 	SDL_bool is_run = SDL_TRUE;
 	
 	SDL_Event e;
-
 	while (is_run)
 	{
 		while (SDL_PollEvent(&e))
@@ -1484,6 +1449,13 @@ int main(int argc, char *argv[])
 				env.mouse_x = e.motion.x;
 			if (e.type == SDL_MOUSEBUTTONDOWN)
 			{
+				if (env.screen == 2)
+				{
+					//fire shoot
+					player.gun_animation = SDL_TRUE;
+					player.is_shoot = SDL_TRUE;
+					Mix_PlayChannel(1, env.gun_fire_sound, 0);
+				}
             	if (sound_press(e.button) && env.screen == 2 && options_pupop_showed == 0)
             	{
             	   if(Mix_Paused(2) == 1) //Si la music est en pause
@@ -1519,9 +1491,6 @@ int main(int argc, char *argv[])
             	   env.screen = previous_screen;
             	if (close_btn_press(e.button) && options_pupop_showed == 1)
             	   options_pupop_showed = 0;
-            	img_player_selected = img_player_press(e.button);
-            	if (img_player_selected && options_pupop_showed == 1)
-            	   player.player_num = img_player_selected;
             	menu_btn_clicked = menu_buttons_press(e.button);
             	if (menu_btn_clicked && env.screen == 3 && options_pupop_showed == 0)
             	{
@@ -1587,14 +1556,10 @@ int main(int argc, char *argv[])
 			{
 				if (e.key.keysym.sym == SDLK_w)
 				{
-					player.frame_player_x = 1;
-   					player.frame_player_y = 1;
 					Mix_Pause(0);
 				}
 				if (e.key.keysym.sym == SDLK_s)
 				{
-					player.frame_player_x = 1;
-   					player.frame_player_y = 0;
 					Mix_Pause(0);
 				}
 			}
@@ -1622,20 +1587,32 @@ int main(int argc, char *argv[])
 		if (env.screen == 2)
       	{
       	   	SDL_RenderClear(rend);
-			update(rend, &player, &env);
+			update(rend, &player, ob_sprites, &env);
 			render(rend, &player, walls, doors, floor, sky, ceil, ob_sprites, &env);
       	   	rect_menu_icon_s = (SDL_Rect){0, 0, 673, 696};
       	   	rect_sound_s = (SDL_Rect){752 * frame_sound, 0, 752, 774};
-      	   	rect_player1_s = (SDL_Rect){363 * player.frame_player_x, 1105 * player.frame_player_y, 363, 1105};
-			rect_player2_s = (SDL_Rect){449 * player.frame_player_x, 1105 * player.frame_player_y, 449, 1105};
-      	   	SDL_RenderCopyEx(rend, tx_icon, &rect_sound_s, &rect_sound_d, 0, NULL, SDL_FLIP_NONE);
-      	   	if (player.player_num == 1)
-      	   	   SDL_RenderCopyEx(rend, tx_player1, &rect_player1_s, &rect_player_d, 0, NULL, SDL_FLIP_NONE);
-      	   	else
-      	   	   SDL_RenderCopyEx(rend, tx_player2, &rect_player2_s, &rect_player_d, 0, NULL, SDL_FLIP_NONE);
-      	   	SDL_RenderCopyEx(rend, tx_menu_icon, &rect_menu_icon_s, &rect_menu_icon_d, 0, NULL, SDL_FLIP_NONE);
 			rect_icon_coin_d = (SDL_Rect){W_W/2-35,10,30,30};
+			rect_gun_s = (SDL_Rect){0, 0, 1920, 1080};
+      	   	rect_aim_s = (SDL_Rect){0, 0, 576, 576};
+			rect_heart_s = (SDL_Rect){0, 0, 200, 200};
+			SDL_RenderCopyEx(rend, tx_icon, &rect_sound_s, &rect_sound_d, 0, NULL, SDL_FLIP_NONE);
+			tx_gun = SDL_CreateTextureFromSurface(rend, shoots[player.frame_gun_x]);
+			SDL_RenderCopyEx(rend, tx_gun, &rect_gun_s, &rect_gun_d, 0, NULL, SDL_FLIP_NONE);
+			if (player.gun_animation)
+				player.frame_gun_x++;
+			if (player.frame_gun_x == 1)
+				player.is_shoot = SDL_FALSE;
+			if (player.frame_gun_x > 8)
+			{
+				player.frame_gun_x = 0;
+				player.gun_animation = SDL_FALSE;
+			}			
+      	   	SDL_RenderCopyEx(rend, tx_menu_icon, &rect_menu_icon_s, &rect_menu_icon_d, 0, NULL, SDL_FLIP_NONE);
 			SDL_RenderCopyEx(rend, tx_sprite4, &rect_icon_coin_s, &rect_icon_coin_d, 0, NULL, SDL_FLIP_NONE);
+			SDL_RenderCopyEx(rend, tx_aim, &rect_aim_s, &rect_aim_d, 0, NULL, SDL_FLIP_NONE);
+			SDL_SetRenderDrawColor(rend, 255,0,0,255);
+			SDL_RenderFillRect(rend, &player.life);
+			SDL_RenderCopyEx(rend, tx_heart, &rect_heart_s, &rect_heart_d, 0, NULL, SDL_FLIP_NONE);
 			write_text(rend, font2, ft_strjoin("x ", ft_itoa(env.solde)), W_W/2, 10);
 			if (env.fade > 0)
 			{
@@ -1695,17 +1672,8 @@ int main(int argc, char *argv[])
       	{
       	   	rect_options_pupop_s = (SDL_Rect){0, 0, 771, 638};
       	   	rect_close_btn_s = (SDL_Rect){0, 0, 300, 300};
-      	   	rect_img_player1_s = (SDL_Rect){0, 0, 363, 1105};
-			rect_img_player2_s = (SDL_Rect){0, 0, 449, 1105};
       	   	SDL_RenderCopyEx(rend, tx_options_pupop, &rect_options_pupop_s, &rect_options_pupop_d, 0, NULL, SDL_FLIP_NONE);
       	   	SDL_RenderCopyEx(rend, tx_close_btn, &rect_close_btn_s, &rect_close_btn_d, 0, NULL, SDL_FLIP_NONE);
-      	   	SDL_RenderCopyEx(rend, tx_img_player1, &rect_img_player1_s, &rect_img_player1_d, 0, NULL, SDL_FLIP_NONE);
-      	   	SDL_RenderCopyEx(rend, tx_img_player2, &rect_img_player2_s, &rect_img_player2_d, 0, NULL, SDL_FLIP_NONE);
-      	   	if (player.player_num == 1)
-      	   	   rect_selection_img_player_d = rect_img_player1_d;
-      	   	else
-      	   	   rect_selection_img_player_d = rect_img_player2_d;
-      	   	SDL_RenderCopyEx(rend, tx_selection_img_player, &rect_img_player1_s, &rect_selection_img_player_d, 0, NULL, SDL_FLIP_NONE);
       	}
 		SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
 		SDL_RenderPresent(rend);
@@ -1714,8 +1682,6 @@ int main(int argc, char *argv[])
    	Mix_FreeChunk(env.coin_sound);
 	Mix_FreeMusic(music); //Libération de la music
 	SDL_DestroyTexture(tx_icon);
-   	SDL_DestroyTexture(tx_player1);
-   	SDL_DestroyTexture(tx_player2);
 	SDL_DestroyRenderer(rend);
 	SDL_DestroyWindow(window);
 	Mix_CloseAudio();

@@ -19,9 +19,12 @@ typedef struct	s_player
 	float dist[numRays];
 	float speed;
 	float fov;
-	double frame_player_x;
-   	double frame_player_y;
-	int player_num;
+	int frame_gun_x;
+	int frame_gun_y;
+	SDL_bool gun_animation;
+	SDL_bool is_shoot;
+	double blood;
+	SDL_Rect life;
 
 }				t_player;
 
@@ -72,6 +75,7 @@ typedef struct	s_environment
    	Mix_Chunk *coin_sound;
 	Mix_Chunk *bg_music;
 	Mix_Chunk *enemy_sound;
+	Mix_Chunk *gun_fire_sound;
 	int mouse_x;
 	SDL_bool minimap;
 	SDL_bool texture;
@@ -95,8 +99,15 @@ typedef struct  s_obj
 	float				h;
 	float				w;
 	float				surface_w;
-	SDL_Texture 		*texture;
 	float				dist_to_player;
+	SDL_Texture 		*texture;
 	int 				fps;
+	SDL_bool			alive;
 }   			t_obj;
+
+typedef struct  s_pnt
+{
+	int x;
+	int y;
+}				t_pnt;
 #endif
