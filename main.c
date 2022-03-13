@@ -263,17 +263,16 @@ float safe_angle_180(float a)
 SDL_bool hit_sprites(t_player *player, t_obj *ob_sprites, t_envirenment *env)
 {
 	int s;
-	SDL_bool safe = SDL_TRUE;
-
 	for (s = 0; s < env->num_sprites; s++)
 	{
-		if ((ob_sprites[s].state == 1 || ob_sprites[s].state == 2) && ob_sprites[s].dist_to_player < 15)
+		if ((ob_sprites[s].state == 1 || ob_sprites[s].state == 2))
 		{
-			printf("%f\n", ob_sprites[s].dist_to_player);
-			safe = SDL_FALSE;
+			if (ob_sprites[s].dist_to_player + distance(player->x + 15 * cos(player->a), player->y - 15 * sin(player->a), ob_sprites[s].x, ob_sprites[s].y) > 14.5 && 
+			ob_sprites[s].dist_to_player + distance(player->x + 15 * cos(player->a), player->y - 15 * sin(player->a), ob_sprites[s].x, ob_sprites[s].y) < 15.5)
+				return (SDL_FALSE);
 		}
 	}
-	return (safe);
+	return (SDL_TRUE);
 }
 
 void safe_map(t_player *player, float pdx, float pdy, t_obj *ob_sprites, t_envirenment *env)
@@ -397,6 +396,14 @@ void env_reset(t_envirenment *env)
 	env->near_enemy = 0;
 }
 
+// void gun_animation(SDL_Renderer *rend, SDL_Texture *tx_gun)
+// {
+// 	SDL_Rect rect_gun_s = (SDL_Rect){0, 0, 1920, 1080};
+//    	SDL_Rect rect_gun_d = (SDL_Rect){W_W/2-250, W_H-280, 500, 280};
+// 	tx_gun = SDL_CreateTextureFromSurface(rend, shoots[player.frame_gun_x]);
+// 	SDL_RenderCopyEx(rend, tx_gun, &rect_gun_s, &rect_gun_d, 0, NULL, SDL_FLIP_NONE);
+// }
+
 void update(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envirenment *env)
 {
 	const uint8_t* keys = SDL_GetKeyboardState(NULL);
@@ -423,9 +430,8 @@ void update(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envirenme
 	
 	if (player->a > 2 * PI)
 			player->a -= 2 * PI;
-	// if (hit_sprites(player, ob_sprites, env) == SDL_TRUE)
+	if (hit_sprites(player, ob_sprites, env) == SDL_TRUE)
 		safe_map(player, dx, dy, ob_sprites, env);
-	//hit_sprites(player, ob_sprites, env);
 	show_door_code(player, dx, dy, env);
 	if (env->code_valid)
 		open_door(player, dx, dy, env);
@@ -1454,6 +1460,7 @@ int main(int argc, char *argv[])
 					//fire shoot
 					player.gun_animation = SDL_TRUE;
 					player.is_shoot = SDL_TRUE;
+					player.frame_gun_x = 1;
 					Mix_PlayChannel(1, env.gun_fire_sound, 0);
 				}
             	if (sound_press(e.button) && env.screen == 2 && options_pupop_showed == 0)

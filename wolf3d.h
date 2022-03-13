@@ -105,9 +105,9 @@ typedef struct  s_obj
 	SDL_bool			alive;
 }   			t_obj;
 
-typedef struct  s_pnt
+typedef struct  s_vect
 {
 	int x;
 	int y;
-}				t_pnt;
+}				t_vect;
 #endif
