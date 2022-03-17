@@ -23,7 +23,8 @@ typedef struct	s_player
 	int frame_gun_y;
 	SDL_bool gun_animation;
 	SDL_bool is_shoot;
-	double blood;
+	SDL_bool damaged;
+	int blood;
 	SDL_Rect life;
 
 }				t_player;
@@ -76,25 +77,27 @@ typedef struct	s_environment
 	Mix_Chunk *bg_music;
 	Mix_Chunk *enemy_sound;
 	Mix_Chunk *gun_fire_sound;
+	Mix_Chunk *aid_kit_sound;
+	Mix_Chunk *pain_sound;
 	int mouse_x;
+	int mouse_y;
 	SDL_bool minimap;
 	SDL_bool texture;
 	SDL_bool skybox;
 	SDL_bool bg_music_active;
-	int		near_enemy;
+	int enemy_num;
 }				t_envirenment;
 
 typedef struct  s_obj
 {
     float               x;
     float               y;
-	float               z;
-    float               frameWidth;
-    float               frameHigth;
+    float               frame_width;
+    float               frame_higth;
     int                	state;
-    int    				size_x;
-	int    				size_y;
-    float               frameCount;
+    float    			size_x;
+	float    			size_y;
+    float               frame_num;
     float               row;
 	float				h;
 	float				w;
@@ -103,11 +106,37 @@ typedef struct  s_obj
 	SDL_Texture 		*texture;
 	int 				fps;
 	SDL_bool			alive;
+	int					damage;
 }   			t_obj;
 
-typedef struct  s_vect
+typedef struct	s_vars_obj
 {
-	int x;
-	int y;
-}				t_vect;
+	float x;
+	float y;
+	float frame_width;
+	float frame_higth;
+	float state;
+	float size_x;
+	float size_y;
+	float frame_num;
+	float surface_w;
+}				t_vars_obj;
+
+typedef struct  s_pnt
+{
+	float ma;
+	float mi;
+}				t_pnt;
+
+typedef struct	s_var_int
+{
+	int x0;
+	int y0;
+	int ipx;
+	int ipx_add_x0;
+	int ipx_sub_x0;
+	int ipy;
+	int ipy_add_y0;
+	int ipy_sub_y0;
+}				t_var_int;
 #endif
