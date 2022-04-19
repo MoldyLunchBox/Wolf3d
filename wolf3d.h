@@ -69,6 +69,7 @@ typedef struct	s_environment
 	SDL_Window *window;
 	SDL_Renderer *rend;
 	SDL_Surface *walls[14];
+	SDL_Surface *quit[4];
 	SDL_Surface *doors[7];
 	SDL_Surface *shoots[9];
 	SDL_Surface *sprites[num_type_sprites];
@@ -79,8 +80,10 @@ typedef struct	s_environment
 	char rust_code[6];
 	int screen;
 	int fps;
+	int fps_quit;
 	int frame_sound;
 	int frame_door;
+	int frame_quit;
 	int fade;
 	int num_sprites;
 	int solde;

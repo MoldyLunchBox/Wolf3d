@@ -37,8 +37,8 @@ int map12[] =		//the map array. Edit to change level but keep the outer walls
 
 int map[] =		//the map array. Edit to change level but keep the outer walls
 {
-		1, 4, 3, 1, 7, 12, 1, 5, 1, 4, 1, 1, 14, 1, 1, 3, 1, 12, 1, 1, 11, 1, 1, 1,
-		1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+		1, 6, 3, 1, 7, 12, 1, 5, 1, 4, 1, 1, 14, 1, 1, 3, 1, 12, 1, 1, 11, 1, 1, 1,
+		1, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 		4, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 		14, 0, 0, 0, 0, 0, 0, 0, 13, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,
 		1, 0, 0, 0, 0, 0, 0, 8, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1,
@@ -93,7 +93,9 @@ void env_reset(t_envirenment *env)
    	env->options_pupop_showed = 0;
 	env->screen = 1;
 	env->fps = 2;
+	env->fps_quit = 2;
 	env->frame_sound = 0;
+	env->frame_quit = 0;
 	env->frame_door=0;
 	env->fade = 220;
 	env->num_sprites = 14;
@@ -405,7 +407,7 @@ void show_door_code(t_player *player, t_envirenment *env)
 		env->screen = 4;
 }
 
-void open_door(t_player *player, t_envirenment *env)
+void open_door(t_envirenment *env)
 {
 	env->fps--;
 	if(env->fps == 0)
@@ -417,6 +419,20 @@ void open_door(t_player *player, t_envirenment *env)
 	{
 		env->frame_door = 5;
 		map[56] = 0;
+	}
+}
+
+void quit_animation(t_envirenment *env)
+{
+	env->fps_quit--;
+	if(env->fps_quit == 0)
+	{
+		env->frame_quit++;
+		env->fps_quit = 2;
+	}
+	if (env->frame_quit == 3)
+	{
+		env->frame_quit = 0;
 	}
 }
 
@@ -754,7 +770,7 @@ void draw_sprite(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envi
 		i++;
 	}
 }
-void select_texture(t_texture *t, SDL_Surface **walls, SDL_Surface **doors, t_envirenment *env)
+void select_texture(t_texture *t, SDL_Surface **walls, SDL_Surface **quit, SDL_Surface **doors, t_envirenment *env)
 {
 	if (t->num == 1)
 		(t->img) = walls[0];
@@ -786,6 +802,8 @@ void select_texture(t_texture *t, SDL_Surface **walls, SDL_Surface **doors, t_en
 		(t->img) = walls[12];
 	if (t->num == 15)
 		(t->img) = walls[13];
+	if (t->num == 16)
+		(t->img) = quit[env->frame_quit];
 }
 
 void color_fix(t_color *c)
@@ -909,7 +927,7 @@ void texture_cords(t_texture *t, t_ray *r, float *line_h)
 	}
 }
 
-void render_view(SDL_Renderer *rend, t_player *player, t_ray r, t_texture t, SDL_Surface **walls, SDL_Surface **doors, SDL_Surface *floor, SDL_Surface *ceil, t_envirenment *env)
+void render_view(SDL_Renderer *rend, t_player *player, t_ray r, t_texture t, SDL_Surface **walls, SDL_Surface **quit, SDL_Surface **doors, SDL_Surface *floor, SDL_Surface *ceil, t_envirenment *env)
 {
 	float line_h;
 	SDL_Rect line;
@@ -920,7 +938,7 @@ void render_view(SDL_Renderer *rend, t_player *player, t_ray r, t_texture t, SDL
 	line.h = 1;
 	
 	line_h = (WALL_H * 220) / r.dist; //220 how player far to screen
-	select_texture(&t, walls, doors, env);
+	select_texture(&t, walls, quit, doors, env);
 	texture_cords(&t, &r, &line_h);
 	rend_wall(rend, &r, &t, line_h, env, &line);
 	y = (W_H / 2) + (line_h / 2);
@@ -1070,7 +1088,7 @@ void closer_line(SDL_Renderer *rend, t_ray *ray, t_texture *tex)
 	}
 }
 
-void render_rays(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_Surface **doors, SDL_Surface *floor, SDL_Surface *ceil, t_envirenment *env)
+void render_rays(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_Surface **quit, SDL_Surface **doors, SDL_Surface *floor, SDL_Surface *ceil, t_envirenment *env)
 {
 	t_rend_vars v;
 	t_ray ray;
@@ -1091,7 +1109,7 @@ void render_rays(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_
 		ray.ca = safe_angle(player->a - ray.ra);
 		ray.dist *=cos(ray.ca); 
 		player->dist[ray.num] = ray.dist;
-		render_view(rend, player, ray, tex, walls, doors, floor, ceil, env);
+		render_view(rend, player, ray, tex, walls, quit, doors, floor, ceil, env);
 		ray.ra-=dtor(0.1);
 		ray.num++;
 	}
@@ -1168,11 +1186,11 @@ void	draw_sky(SDL_Renderer *rend, SDL_Surface *sky, t_player *player)
 	}
 }
 
-void render(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_Surface **doors, SDL_Surface *floor, SDL_Surface *sky, SDL_Surface *ceil, t_obj *ob_sprites, t_envirenment *env)
+void render(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_Surface **quit, SDL_Surface **doors, SDL_Surface *floor, SDL_Surface *sky, SDL_Surface *ceil, t_obj *ob_sprites, t_envirenment *env)
 {
 	if (env->skybox)
 		draw_sky(rend, sky, player);
-    render_rays(rend, player, walls, doors, floor, ceil, env);
+    render_rays(rend, player, walls, quit, doors, floor, ceil, env);
 	draw_sprite(rend, player, ob_sprites, env);
     if (env->minimap)
         render_map(rend, player, ob_sprites, env);
@@ -1230,6 +1248,10 @@ void load_walls(t_envirenment *env)
 	env->walls[11] = IMG_Load("resources/images/walls/wall_key.png");
 	env->walls[12] = IMG_Load("resources/images/walls/wall_10.png");
 	env->walls[13] = IMG_Load("resources/images/walls/wall_11.png");
+	env->quit[0] = IMG_Load("resources/images/walls/quit1.png");
+	env->quit[1] = IMG_Load("resources/images/walls/quit2.png");
+	env->quit[2] = IMG_Load("resources/images/walls/quit3.png");
+	env->quit[3] = IMG_Load("resources/images/walls/quit4.png");
 }
 
 void load_doors(t_envirenment *env)
@@ -1481,11 +1503,12 @@ void in_screen_2(t_envirenment *env, t_decoration_texture *t, t_rect_decoration 
 	if (env->screen == 2)
     {
 		update(player, ob_sprites, env);
-		render(env->rend, player, env->walls, env->doors, env->floor, env->sky, env->ceil, ob_sprites, env);
+		render(env->rend, player, env->walls, env->quit, env->doors, env->floor, env->sky, env->ceil, ob_sprites, env);
 		gun_animation(env->rend, player, env->shoots);
 		show_door_code(player, env);
 		if (env->code_valid)
-			open_door(player, env);
+			open_door(env);
+		quit_animation(env);
        	rd->rect_sound_s = (SDL_Rect){752 * env->frame_sound, 0, 752, 774};
 		rd->rect_icon_coin_d = (SDL_Rect){W_W/2-35,10,30,30};
 		rd->rect_aim_d = (SDL_Rect){W_W/2-20, env->mouse_y, 40, 40};			
