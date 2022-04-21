@@ -18,6 +18,26 @@ float dtor(float d)
     return (d * PI / 180.0f);
 }
 
+void    init_obj(t_obj *obj, t_vars_obj vars_obj, SDL_Texture *texture)
+{
+    obj->x = vars_obj.x;
+    obj->y = vars_obj.y;
+    obj->frame_width = vars_obj.frame_width;
+    obj->frame_higth = vars_obj.frame_higth;
+    obj->state = vars_obj.state;
+    obj->size_x = vars_obj.size_x;
+    obj->size_y = vars_obj.size_y;
+    obj->frame_num = vars_obj.frame_num;
+	obj->surface_w = vars_obj.surface_w;
+	obj->prev_state = vars_obj.prev_state;
+	obj->texture = texture;
+	obj->alive = SDL_TRUE;
+	obj->fps = 2;
+	obj->row = 0;
+	obj->damage = 3;
+	obj->dist_to_player = 15;
+}
+
 int map12[] =		//the map array. Edit to change level but keep the outer walls
 {
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -37,31 +57,67 @@ int map12[] =		//the map array. Edit to change level but keep the outer walls
 
 int map[] =		//the map array. Edit to change level but keep the outer walls
 {
-		1, 6, 3, 1, 7, 12, 1, 5, 1, 4, 1, 1, 14, 1, 1, 3, 1, 12, 1, 1, 11, 1, 1, 1,
-		1, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-		4, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-		14, 0, 0, 0, 0, 0, 0, 0, 13, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,
-		1, 0, 0, 0, 0, 0, 0, 8, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1,
-		5, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 1, 0, 0, 11,
-		1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
-		1, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 12,
-		8, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3, 1, 0, 0, 1,
-		15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-		9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-		1, 1, 1, 6, 1, 0, 0, 0, 0, 1, 1, 1, 15, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 14,
-		3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 7,
-		1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-		10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
-		1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-		6, 0, 0, 0, 0, 0, 1, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 9, 7, 5, 1, 0, 0, 0, 0, 1,
-		1, 14, 11, 1, 0, 0, 14, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1,
-		1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 1,
-		15, 1, 7, 1, 0, 0, 1, 1, 15, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 14,
-		1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1,
-		3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-		1, 10, 1, 7, 4, 3, 1, 1, 10, 1, 1, 11, 1, 14, 1, 12, 1, 1, 1, 1, 15, 1, 3, 1,
+	1, 6, 3, 1, 7, 1, 1, 5, 1, 4, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 0, 0, 0, 0, 0, 1, 0, 9, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	4, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 8, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1,
+	1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1,
+	5, 0, 1, 1, 1, 0, 1, 0, 0, 4, 0, 0, 0, 0, 1, 0, 0, 5, 0, 0, 1, 0, 0, 1,
+	1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1,
+	1, 0, 1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+	8, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 3, 1, 0, 1, 1,
+	1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	9, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+	1, 1, 1, 6, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1,
+	3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 7,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1,
+	1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 4,
+	1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,
+	6, 0, 0, 0, 0, 0, 1, 3, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 9, 7, 5, 1, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1,
+	1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1,
+	1, 1, 7, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1,
+	1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1,
+	3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 7, 4, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1,
 };
+
+void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites)
+{
+	//static
+	init_obj(&ob_sprites[0], (t_vars_obj){12*20+10, 12*20+10, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
+	init_obj(&ob_sprites[1], (t_vars_obj){3*20+8, 2*20, 280, 270, 1, 3, 3, 0, 280, 1}, tx_sprites[1]);
+	//enemy
+	init_obj(&ob_sprites[2], (t_vars_obj){5*20, 5*20, 910, 1493, 2, 3, 2, 0, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[3], (t_vars_obj){16*20, 4*20, 910, 1493, 2, 3, 2, 3, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[4], (t_vars_obj){2*20, 15*20, 910, 1493, 2, 3, 2, 6, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[5], (t_vars_obj){3*20, 13*20, 910, 1493, 2, 3, 2, 8, 910, 2}, tx_sprites[2]);
+	//static
+	init_obj(&ob_sprites[11], (t_vars_obj){10*20+8, 8*20+8, 260, 310, 1, 3, 3, 0, 260, 1}, tx_sprites[6]);
+	init_obj(&ob_sprites[12], (t_vars_obj){15*20+10, 7*20+10, 900, 900, 5, 2, 3, 0, 900, 5}, tx_sprites[7]);
+	init_obj(&ob_sprites[25], (t_vars_obj){15*20+10, 7*20+10, 295, 400, 1, 3, 3, 0, 295, 1}, tx_sprites[4]);
+	//aid_kit
+	init_obj(&ob_sprites[13], (t_vars_obj){2*20+10, 22*20+10, 223, 200, 4, 4, 4, 0, 223, 4}, tx_sprites[5]);
+	//coin
+
+	init_obj(&ob_sprites[10], (t_vars_obj){9*20+10, 1*20+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[14], (t_vars_obj){9*20+20, 1*20+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[15], (t_vars_obj){9*20+30, 1*20+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[9], (t_vars_obj){9*20+40, 1*20+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[16], (t_vars_obj){9*20+10, 1*20+22, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[17], (t_vars_obj){9*20+20, 1*20+22, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[18], (t_vars_obj){9*20+30, 1*20+22, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[8], (t_vars_obj){9*20+40, 1*20+22, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[19], (t_vars_obj){9*20+10, 1*20+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[20], (t_vars_obj){9*20+20, 1*20+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[21], (t_vars_obj){9*20+30, 1*20+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[7], (t_vars_obj){9*20+40, 1*20+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[22], (t_vars_obj){9*20+10, 1*20+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[23], (t_vars_obj){9*20+20, 1*20+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[24], (t_vars_obj){9*20+30, 1*20+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[6], (t_vars_obj){9*20+40, 1*20+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+}
 
 void player_reset(t_player *player)
 {
@@ -98,7 +154,7 @@ void env_reset(t_envirenment *env)
 	env->frame_quit = 0;
 	env->frame_door=0;
 	env->fade = 220;
-	env->num_sprites = 14;
+	env->num_sprites = 26;
 	env->solde = 0;
 	env->minimap = SDL_FALSE;
 	env->texture = SDL_TRUE;
@@ -251,25 +307,6 @@ void    create_obj(t_obj *obj)
     obj = (t_obj*)malloc(sizeof(t_obj));
 }
 
-void    init_obj(t_obj *obj, t_vars_obj vars_obj, SDL_Texture *texture)
-{
-    obj->x = vars_obj.x;
-    obj->y = vars_obj.y;
-    obj->frame_width = vars_obj.frame_width;
-    obj->frame_higth = vars_obj.frame_higth;
-    obj->state = vars_obj.state;
-    obj->size_x = vars_obj.size_x;
-    obj->size_y = vars_obj.size_y;
-    obj->frame_num = vars_obj.frame_num;
-	obj->surface_w = vars_obj.surface_w;
-	obj->prev_state = vars_obj.prev_state;
-	obj->texture = texture;
-	obj->alive = SDL_TRUE;
-	obj->fps = 2;
-	obj->row = 0;
-	obj->damage = 3;
-	obj->dist_to_player = 15;
-}
 
 Uint32 getpixel(SDL_Surface *surface, int x, int y)
 {
@@ -436,28 +473,6 @@ void quit_animation(t_envirenment *env)
 	}
 }
 
-void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites)
-{
-	//static
-	init_obj(&ob_sprites[0], (t_vars_obj){4*20, 4*20, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
-	init_obj(&ob_sprites[1], (t_vars_obj){5*20, 3*20, 280, 270, 1, 3, 3, 0, 280, 1}, tx_sprites[1]);
-	//enemy
-	init_obj(&ob_sprites[2], (t_vars_obj){5*20, 5*20, 910, 1493, 2, 3, 2, 0, 910, 2}, tx_sprites[2]);
-	init_obj(&ob_sprites[3], (t_vars_obj){16*20, 3*20, 910, 1493, 2, 3, 2, 3, 910, 2}, tx_sprites[2]);
-	init_obj(&ob_sprites[4], (t_vars_obj){2*20, 15*20, 910, 1493, 2, 3, 2, 6, 910, 2}, tx_sprites[2]);
-	init_obj(&ob_sprites[5], (t_vars_obj){3*20, 13*20, 910, 1493, 2, 3, 2, 8, 910, 2}, tx_sprites[2]);
-	//coin
-	init_obj(&ob_sprites[6], (t_vars_obj){5*20, 8*20, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[7], (t_vars_obj){6*20, 9*20, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[8], (t_vars_obj){7*20, 10*20, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[9], (t_vars_obj){15*20, 3*20, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	//static
-	init_obj(&ob_sprites[10], (t_vars_obj){9*20+10, 1*20+10, 295, 400, 1, 3, 3, 0, 295, 1}, tx_sprites[4]);
-	init_obj(&ob_sprites[11], (t_vars_obj){10*20+8, 8*20+8, 260, 310, 1, 3, 3, 0, 260, 1}, tx_sprites[6]);
-	init_obj(&ob_sprites[12], (t_vars_obj){3*20+8, 5*20+8, 900, 900, 5, 2, 3, 0, 900, 5}, tx_sprites[7]);
-	//aid_kit
-	init_obj(&ob_sprites[13], (t_vars_obj){2*20+10, 22*20+10, 223, 200, 4, 4, 4, 0, 223, 4}, tx_sprites[5]);
-}
 
 void gun_animation(SDL_Renderer *rend, t_player *player, SDL_Surface **shoots)
 {
@@ -526,7 +541,8 @@ void update(t_player *player, t_obj *ob_sprites, t_envirenment *env)
 	p = movement(player);
 	dx = p.ma;
 	dy = p.mi;
-	player->a = -range_conversion_val((t_pnt){W_W, 0}, (t_pnt){3*PI, -3*PI}, env->mouse_x);
+	player->a = -range_conversion_val((t_pnt){W_W, 0}, (t_pnt){2*PI, -2*PI}, env->mouse_x);
+	printf("%d\n", env->mouse_x);
 	safe_angle(player->a);
 	// if (hit_sprites(player, ob_sprites, env) == SDL_TRUE)
 	safe_map(player, dx, dy, env);
@@ -1111,6 +1127,7 @@ void render_rays(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_
 		player->dist[ray.num] = ray.dist;
 		render_view(rend, player, ray, tex, walls, quit, doors, floor, ceil, env);
 		ray.ra-=dtor(0.1);
+		ray.ra = safe_angle(ray.ra);
 		ray.num++;
 	}
 }
@@ -1620,7 +1637,6 @@ int main(int argc, char *argv[])
    	init_sound_effect(&env);
 	t_obj ob_sprites[env.num_sprites];
 	sprites_reset(ob_sprites, tx_sprites);
-	
 	SDL_Event e;
 	while (env.is_run)
 	{
