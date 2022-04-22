@@ -4,7 +4,6 @@
 # include "SDL2/SDL_mixer.h"
 #include "wolf3d.h"
 #include <string.h>
-
 #define PI 3.1415926535
 #define mapX 24	//map width
 #define mapY 24
@@ -62,13 +61,13 @@ int map[] =		//the map array. Edit to change level but keep the outer walls
 	4, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 8, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1,
 	1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1,
-	5, 0, 1, 1, 1, 0, 1, 0, 0, 4, 0, 0, 0, 0, 1, 0, 0, 5, 0, 0, 1, 0, 0, 1,
-	1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1,
-	1, 0, 1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
-	8, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 3, 1, 0, 1, 1,
-	1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	5, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 5, 0, 0, 1, 0, 0, 1,
+	1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1,
+	1, 0, 1, 0, 1, 0, 1, 0, 0, 9, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+	8, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 3, 1, 0, 1, 1,
+	1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	9, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-	1, 1, 1, 6, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1,
+	1, 1, 1, 6, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1,
 	3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 7,
 	1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1,
 	1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 4,
@@ -86,37 +85,53 @@ int map[] =		//the map array. Edit to change level but keep the outer walls
 void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites)
 {
 	//static
-	init_obj(&ob_sprites[0], (t_vars_obj){12*20+10, 12*20+10, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
-	init_obj(&ob_sprites[1], (t_vars_obj){3*20+8, 2*20, 280, 270, 1, 3, 3, 0, 280, 1}, tx_sprites[1]);
-	//enemy
-	init_obj(&ob_sprites[2], (t_vars_obj){5*20, 5*20, 910, 1493, 2, 3, 2, 0, 910, 2}, tx_sprites[2]);
-	init_obj(&ob_sprites[3], (t_vars_obj){16*20, 4*20, 910, 1493, 2, 3, 2, 3, 910, 2}, tx_sprites[2]);
-	init_obj(&ob_sprites[4], (t_vars_obj){2*20, 15*20, 910, 1493, 2, 3, 2, 6, 910, 2}, tx_sprites[2]);
-	init_obj(&ob_sprites[5], (t_vars_obj){3*20, 13*20, 910, 1493, 2, 3, 2, 8, 910, 2}, tx_sprites[2]);
-	//static
-	init_obj(&ob_sprites[11], (t_vars_obj){10*20+8, 8*20+8, 260, 310, 1, 3, 3, 0, 260, 1}, tx_sprites[6]);
-	init_obj(&ob_sprites[12], (t_vars_obj){15*20+10, 7*20+10, 900, 900, 5, 2, 3, 0, 900, 5}, tx_sprites[7]);
-	init_obj(&ob_sprites[25], (t_vars_obj){15*20+10, 7*20+10, 295, 400, 1, 3, 3, 0, 295, 1}, tx_sprites[4]);
-	//aid_kit
-	init_obj(&ob_sprites[13], (t_vars_obj){2*20+10, 22*20+10, 223, 200, 4, 4, 4, 0, 223, 4}, tx_sprites[5]);
-	//coin
+	init_obj(&ob_sprites[0], (t_vars_obj){12*cellS+10, 12*cellS+10, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
+	init_obj(&ob_sprites[1], (t_vars_obj){3*cellS+10, 2*cellS, 280, 270, 1, 3, 3, 0, 280, 1}, tx_sprites[1]);
+	init_obj(&ob_sprites[2], (t_vars_obj){10*cellS+10, 7*cellS+10, 260, 310, 1, 3, 3, 0, 260, 1}, tx_sprites[6]);
+	init_obj(&ob_sprites[3], (t_vars_obj){15*cellS+10, 7*cellS+10, 900, 900, 5, 2, 3, 0, 900, 5}, tx_sprites[7]);
+	init_obj(&ob_sprites[4], (t_vars_obj){15*cellS+10, 7*cellS+10, 295, 400, 1, 3, 3, 0, 295, 1}, tx_sprites[4]);
 
-	init_obj(&ob_sprites[10], (t_vars_obj){9*20+10, 1*20+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[14], (t_vars_obj){9*20+20, 1*20+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[15], (t_vars_obj){9*20+30, 1*20+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[9], (t_vars_obj){9*20+40, 1*20+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[16], (t_vars_obj){9*20+10, 1*20+22, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[17], (t_vars_obj){9*20+20, 1*20+22, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[18], (t_vars_obj){9*20+30, 1*20+22, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[8], (t_vars_obj){9*20+40, 1*20+22, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[19], (t_vars_obj){9*20+10, 1*20+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[20], (t_vars_obj){9*20+20, 1*20+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[21], (t_vars_obj){9*20+30, 1*20+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[7], (t_vars_obj){9*20+40, 1*20+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[22], (t_vars_obj){9*20+10, 1*20+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[23], (t_vars_obj){9*20+20, 1*20+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[24], (t_vars_obj){9*20+30, 1*20+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
-	init_obj(&ob_sprites[6], (t_vars_obj){9*20+40, 1*20+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	//enemy
+	init_obj(&ob_sprites[5], (t_vars_obj){5*cellS, 5*cellS, 910, 1493, 2, 3, 2, 0, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[6], (t_vars_obj){16*cellS, 4*cellS, 910, 1493, 2, 3, 2, 3, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[7], (t_vars_obj){2*cellS, 15*cellS, 910, 1493, 2, 3, 2, 6, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[8], (t_vars_obj){3*cellS, 13*cellS, 910, 1493, 2, 3, 2, 8, 910, 2}, tx_sprites[2]);
+
+	init_obj(&ob_sprites[9], (t_vars_obj){1*cellS+10, 19*cellS+10, 910, 1493, 2, 3, 2, 0, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[10], (t_vars_obj){8*cellS, 22*cellS+10, 910, 1493, 2, 3, 2, 3, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[11], (t_vars_obj){18*cellS, 20*cellS+10, 910, 1493, 2, 3, 2, 6, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[12], (t_vars_obj){22*cellS+10, 3*cellS+10, 910, 1493, 2, 3, 2, 8, 910, 2}, tx_sprites[2]);
+
+	init_obj(&ob_sprites[13], (t_vars_obj){22*cellS+10, 7*cellS+10, 910, 1493, 2, 3, 2, 0, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[14], (t_vars_obj){13*cellS, 13*cellS+10, 910, 1493, 2, 3, 2, 3, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[15], (t_vars_obj){7*cellS+10, 1*cellS+10, 910, 1493, 2, 3, 2, 6, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[16], (t_vars_obj){10*cellS+10, 16*cellS+10, 910, 1493, 2, 3, 2, 8, 910, 2}, tx_sprites[2]);
+
+	//aid_kit
+	init_obj(&ob_sprites[17], (t_vars_obj){2*cellS+10, 22*cellS+10, 223, 200, 4, 4, 4, 0, 223, 4}, tx_sprites[5]);
+
+	//coin
+	init_obj(&ob_sprites[18], (t_vars_obj){9*cellS+10, 1*cellS+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[19], (t_vars_obj){9*cellS+20, 1*cellS+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[20], (t_vars_obj){9*cellS+30, 1*cellS+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[21], (t_vars_obj){9*cellS+40, 1*cellS+7, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[22], (t_vars_obj){9*cellS+10, 1*cellS+22, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[23], (t_vars_obj){9*cellS+20, 1*cellS+22, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[24], (t_vars_obj){9*cellS+30, 1*cellS+22, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[25], (t_vars_obj){9*cellS+40, 1*cellS+22, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[26], (t_vars_obj){9*cellS+10, 1*cellS+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[27], (t_vars_obj){9*cellS+20, 1*cellS+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[28], (t_vars_obj){9*cellS+30, 1*cellS+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[29], (t_vars_obj){9*cellS+40, 1*cellS+37, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[30], (t_vars_obj){9*cellS+10, 1*cellS+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[31], (t_vars_obj){9*cellS+20, 1*cellS+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[32], (t_vars_obj){9*cellS+30, 1*cellS+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+	init_obj(&ob_sprites[33], (t_vars_obj){9*cellS+40, 1*cellS+52, 512, 512, 3, 5, 5, 0, 512, 3}, tx_sprites[3]);
+
+	init_obj(&ob_sprites[34], (t_vars_obj){17*cellS+10, 11*cellS+10, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
+	init_obj(&ob_sprites[35], (t_vars_obj){17*cellS+10, 12*cellS+10, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
+	init_obj(&ob_sprites[36], (t_vars_obj){17*cellS+10, 13*cellS+10, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
+	init_obj(&ob_sprites[37], (t_vars_obj){17*cellS+10, 14*cellS+10, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
 }
 
 void player_reset(t_player *player)
@@ -154,7 +169,7 @@ void env_reset(t_envirenment *env)
 	env->frame_quit = 0;
 	env->frame_door=0;
 	env->fade = 220;
-	env->num_sprites = 26;
+	env->num_sprites = 38;
 	env->solde = 0;
 	env->minimap = SDL_FALSE;
 	env->texture = SDL_TRUE;
@@ -186,9 +201,15 @@ void sound_press(SDL_MouseButtonEvent b, t_envirenment *env)
 void cursor_mouse(t_envirenment *env)
 {
 	if (env->screen == 2 && env->mouse_y > 50)
+	{
+		SDL_SetRelativeMouseMode(SDL_TRUE);
 		SDL_ShowCursor(SDL_DISABLE);
+	}
 	else
+	{
+		SDL_SetRelativeMouseMode(SDL_FALSE);
 		SDL_ShowCursor(SDL_ENABLE);
+	}
 }
 void play_press(SDL_MouseButtonEvent b, t_envirenment *env)
 {
@@ -541,7 +562,11 @@ void update(t_player *player, t_obj *ob_sprites, t_envirenment *env)
 	p = movement(player);
 	dx = p.ma;
 	dy = p.mi;
-	player->a = -range_conversion_val((t_pnt){W_W, 0}, (t_pnt){2*PI, -2*PI}, env->mouse_x);
+	if (env->mouse_x == 599)
+		SDL_WarpMouseInWindow(env->window, 1, env->mouse_y);
+	if (env->mouse_x == 0)
+		SDL_WarpMouseInWindow(env->window, 599, env->mouse_y);
+	player->a = -range_conversion_val((t_pnt){W_W, 0}, (t_pnt){1*PI, -1*PI}, env->mouse_x);
 	printf("%d\n", env->mouse_x);
 	safe_angle(player->a);
 	// if (hit_sprites(player, ob_sprites, env) == SDL_TRUE)
@@ -1578,6 +1603,7 @@ void in_screen_5(t_envirenment *env, t_decoration_texture *t, t_rect_decoration 
 	if (env->screen == 5)
     {
 		Mix_Pause(3);
+		Mix_Pause(6);
        	SDL_RenderClear(env->rend);
 		SDL_RenderCopy(env->rend, t->tx_lose_sc, &rd->rect_lose_sc_s, &rd->rect_lose_sc_d);
 		rd->rect_icon_coin_d = (SDL_Rect){W_W/2-35,W_H/5,30,30};
