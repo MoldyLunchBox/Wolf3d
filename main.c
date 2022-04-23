@@ -565,10 +565,10 @@ void update(t_player *player, t_obj *ob_sprites, t_envirenment *env)
 	dy = p.mi;
 	if (env->cursor)
 	{
-		if (env->mouse_x == 599)
+		if (env->mouse_x == W_W-1)
 			SDL_WarpMouseInWindow(env->window, 1, env->mouse_y);
 		if (env->mouse_x == 0)
-			SDL_WarpMouseInWindow(env->window, 599, env->mouse_y);
+			SDL_WarpMouseInWindow(env->window, W_W-1, env->mouse_y);
 		player->a = -range_conversion_val((t_pnt){W_W, 0}, (t_pnt){1*PI, -1*PI}, env->mouse_x);
 	}
 	printf("%d\n", env->mouse_x);
@@ -1154,7 +1154,7 @@ void render_rays(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_
 		ray.dist *=cos(ray.ca); 
 		player->dist[ray.num] = ray.dist;
 		render_view(rend, player, ray, tex, walls, quit, doors, floor, ceil, env);
-		ray.ra-=dtor(0.1);
+		ray.ra-=dtor(0.075);
 		ray.ra = safe_angle(ray.ra);
 		ray.num++;
 	}
@@ -1212,15 +1212,15 @@ void	draw_sky(SDL_Renderer *rend, SDL_Surface *sky, t_player *player)
 	Uint32 data;
 
 	x = 0;
-	while (x < 1124)
+	while (x < W_W)
 	{
 		y = 0;
-		while (y < 300)
+		while (y < W_H/2)
 		{			
 			x0 = (int)(player->a * 3 / PI * 180.0f) - x;
 			if (x0 < 0)
-				x0 += 1124;
-			x0 = x0 % 1124;
+				x0 += W_W;
+			x0 = x0 % W_W;
 			data = getpixel(sky, x0, y);
 			SDL_GetRGB(data, sky->format, &rgb.r, &rgb.g, &rgb.b);
 			SDL_SetRenderDrawColor(rend, rgb.r, rgb.g, rgb.b, 255);

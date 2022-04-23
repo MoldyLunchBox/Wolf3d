@@ -1,10 +1,10 @@
 #ifndef WOLF3D_H
 #define WOLF3D_H
-#define W_W 600
+#define W_W 800
 #define W_H 600
 #define mapWidth  24
 #define mapHeight  24
-#define numRays 600
+#define numRays 800
 #define num_type_sprites 8
 #include <math.h>
 #include "./libft/libft.h"
