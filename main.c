@@ -1154,7 +1154,7 @@ void render_rays(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_
 		ray.dist *=cos(ray.ca); 
 		player->dist[ray.num] = ray.dist;
 		render_view(rend, player, ray, tex, walls, quit, doors, floor, ceil, env);
-		ray.ra-=dtor(0.075);
+		ray.ra-=dtor(player->fov / W_W);
 		ray.ra = safe_angle(ray.ra);
 		ray.num++;
 	}
