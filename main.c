@@ -174,6 +174,7 @@ void env_reset(t_envirenment *env)
 	env->minimap = SDL_FALSE;
 	env->texture = SDL_TRUE;
 	env->skybox = SDL_FALSE;
+	env->cursor = SDL_TRUE;
 	env->bg_music_active = SDL_TRUE;
 	env->enemy_num = 4;
 }
@@ -200,14 +201,14 @@ void sound_press(SDL_MouseButtonEvent b, t_envirenment *env)
 
 void cursor_mouse(t_envirenment *env)
 {
-	if (env->screen == 2 && env->mouse_y > 50)
+	if (env->screen == 2 && env->cursor)
 	{
-		SDL_SetRelativeMouseMode(SDL_TRUE);
+		// SDL_SetRelativeMouseMode(SDL_TRUE);
 		SDL_ShowCursor(SDL_DISABLE);
 	}
 	else
 	{
-		SDL_SetRelativeMouseMode(SDL_FALSE);
+		// SDL_SetRelativeMouseMode(SDL_FALSE);
 		SDL_ShowCursor(SDL_ENABLE);
 	}
 }
@@ -562,14 +563,16 @@ void update(t_player *player, t_obj *ob_sprites, t_envirenment *env)
 	p = movement(player);
 	dx = p.ma;
 	dy = p.mi;
-	if (env->mouse_x == 599)
-		SDL_WarpMouseInWindow(env->window, 1, env->mouse_y);
-	if (env->mouse_x == 0)
-		SDL_WarpMouseInWindow(env->window, 599, env->mouse_y);
-	player->a = -range_conversion_val((t_pnt){W_W, 0}, (t_pnt){1*PI, -1*PI}, env->mouse_x);
+	if (env->cursor)
+	{
+		if (env->mouse_x == 599)
+			SDL_WarpMouseInWindow(env->window, 1, env->mouse_y);
+		if (env->mouse_x == 0)
+			SDL_WarpMouseInWindow(env->window, 599, env->mouse_y);
+		player->a = -range_conversion_val((t_pnt){W_W, 0}, (t_pnt){1*PI, -1*PI}, env->mouse_x);
+	}
 	printf("%d\n", env->mouse_x);
 	safe_angle(player->a);
-	// if (hit_sprites(player, ob_sprites, env) == SDL_TRUE)
 	safe_map(player, dx, dy, env);
 	hit_sprites(player, ob_sprites, env);
 }
@@ -1508,6 +1511,8 @@ void	key_down_event(t_envirenment *env,  SDL_Event e)
 	}
 	if (e.key.keysym.sym == SDLK_w || e.key.keysym.sym == SDLK_s)
       	Mix_Resume(0);
+	if (e.key.keysym.sym == SDLK_p)
+		env->cursor = !env->cursor;
 }
 
 void in_screen_1(t_envirenment *env, t_decoration_texture *t, t_rect_decoration *rd)

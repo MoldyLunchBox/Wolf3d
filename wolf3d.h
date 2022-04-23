@@ -104,6 +104,7 @@ typedef struct	s_environment
 	SDL_bool minimap;
 	SDL_bool texture;
 	SDL_bool skybox;
+	SDL_bool cursor;
 	SDL_bool bg_music_active;
 	int enemy_num;
 }				t_envirenment;
