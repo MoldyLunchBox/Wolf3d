@@ -82,8 +82,16 @@ int map[] =		//the map array. Edit to change level but keep the outer walls
 	1, 1, 1, 7, 4, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1,
 };
 
-void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites)
+void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites, t_envirenment *env)
 {
+	int s;
+
+	s = 0;
+	while (s < env->num_sprites)
+	{
+		ob_sprites[s].id = s;
+		s++;
+	}
 	//static
 	init_obj(&ob_sprites[0], (t_vars_obj){12*cellS+10, 12*cellS+10, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
 	init_obj(&ob_sprites[1], (t_vars_obj){3*cellS+10, 2*cellS, 280, 270, 1, 3, 3, 0, 280, 1}, tx_sprites[1]);
@@ -255,7 +263,7 @@ void menu_icon_press(SDL_MouseButtonEvent b, t_envirenment *env)
    }
 }
 
-void menu_buttons_press(SDL_MouseButtonEvent b, t_envirenment *env, t_player *player)
+void menu_buttons_press(SDL_MouseButtonEvent b, t_envirenment *env, t_player *player, t_obj *ob_sprites, SDL_Texture **tx_sprites)
 {
    	if(b.button == SDL_BUTTON_LEFT)
    	{
@@ -267,9 +275,10 @@ void menu_buttons_press(SDL_MouseButtonEvent b, t_envirenment *env, t_player *pl
         	   env->screen = 2;
         	if (b.y >= (W_H/6*2)+(12*3) && b.y <= (W_H/6*2)+(12*3) + W_H/6)
         	{
-			   env_reset(env);
-			   player_reset(player);
-			   env->screen = 2;
+				sprites_reset(ob_sprites, tx_sprites, env);
+			   	env_reset(env);
+			   	player_reset(player);
+			   	env->screen = 2;
     	   	}
         	if (b.y >= (W_H/6*3)+(12*4) && b.y <= (W_H/6*3)+(12*4) + W_H/6)
         	   env->options_pupop_showed = 1;
@@ -382,6 +391,40 @@ float safe_angle_180(float a)
 	if (a < -PI)
 		a += PI;
 	return (a);
+}
+
+void enemy_collision(t_obj *enemy, t_obj *ob_sprites, t_envirenment *env)
+{
+	int s;
+
+	s = 0;
+	while (s < env->num_sprites)
+	{
+		if (enemy->id != ob_sprites[s].id && distance(enemy->x, enemy->y, ob_sprites[s].x, ob_sprites[s].y) < 3)
+		{
+			if (enemy->x < ob_sprites[s].x && enemy->y < ob_sprites[s].y)
+			{
+				enemy->x-=(3-distance(enemy->x, enemy->y, ob_sprites[s].x, ob_sprites[s].y));
+				enemy->y-=(3-distance(enemy->x, enemy->y, ob_sprites[s].x, ob_sprites[s].y));
+			}
+			if (enemy->x < ob_sprites[s].x && enemy->y > ob_sprites[s].y)
+			{
+				enemy->x-=(3-distance(enemy->x, enemy->y, ob_sprites[s].x, ob_sprites[s].y));
+				enemy->y+=(3-distance(enemy->x, enemy->y, ob_sprites[s].x, ob_sprites[s].y));
+			}
+			if (enemy->x > ob_sprites[s].x && enemy->y < ob_sprites[s].y)
+			{
+				enemy->x+=(3-distance(enemy->x, enemy->y, ob_sprites[s].x, ob_sprites[s].y));
+				enemy->y-=(3-distance(enemy->x, enemy->y, ob_sprites[s].x, ob_sprites[s].y));
+			}
+			if (enemy->x > ob_sprites[s].x && enemy->y > ob_sprites[s].y)
+			{
+				enemy->x+=(3-distance(enemy->x, enemy->y, ob_sprites[s].x, ob_sprites[s].y));
+				enemy->y+=(3-distance(enemy->x, enemy->y, ob_sprites[s].x, ob_sprites[s].y));
+			}
+		}
+		s++;
+	}
 }
 
 void hit_sprites(t_player *player, t_obj *ob_sprites, t_envirenment *env)
@@ -571,7 +614,6 @@ void update(t_player *player, t_obj *ob_sprites, t_envirenment *env)
 			SDL_WarpMouseInWindow(env->window, W_W-1, env->mouse_y);
 		player->a = -range_conversion_val((t_pnt){W_W, 0}, (t_pnt){1*PI, -1*PI}, env->mouse_x);
 	}
-	printf("%d\n", env->mouse_x);
 	safe_angle(player->a);
 	safe_map(player, dx, dy, env);
 	hit_sprites(player, ob_sprites, env);
@@ -629,6 +671,7 @@ void enemy_movement(t_player *player, t_obj *ob_sprites)
 	if (distance(player->x, player->y, ob_sprites->x, ob_sprites->y) > 12 
 	&& distance(player->x, player->y, ob_sprites->x, ob_sprites->y) < 100 && ob_sprites->alive)
 	{
+		printf("%d\n", ob_sprites->id);
 		if (ob_sprites->x > player->x && map[vars.ipy*mapX+vars.ipx_sub_x0] == 0)
 			ob_sprites->x-=0.7;
 		if (ob_sprites->x < player->x && map[vars.ipy*mapX+vars.ipx_add_x0] == 0)
@@ -715,6 +758,7 @@ void update_sprites(t_player *player, t_obj *ob_sprites, t_envirenment *env)
 		if (ob_sprites[i].state == 2)
 		{
 			enemy_movement(player, &ob_sprites[i]);
+			enemy_collision(&ob_sprites[i], ob_sprites, env);
 			enemy_animation(player, &ob_sprites[i], env);
 			player_damage_lose(player, &ob_sprites[i], env);	
 		}
@@ -1471,7 +1515,7 @@ void init_sound_effect(t_envirenment *env)
 	Mix_Pause(6);
 }
 
-void	mouse_event(t_envirenment *env, t_player *player, SDL_Event e)
+void	mouse_event(t_envirenment *env, t_player *player, SDL_Event e, t_obj *ob_sprites, SDL_Texture **tx_sprites)
 {
 	if (env->screen == 2)
 	{
@@ -1486,7 +1530,7 @@ void	mouse_event(t_envirenment *env, t_player *player, SDL_Event e)
 	quit_press(e.button, env); 
     menu_icon_press(e.button, env);
     close_btn_press(e.button, env);
-    menu_buttons_press(e.button, env, player);
+    menu_buttons_press(e.button, env, player, ob_sprites, tx_sprites);
 	back_btn_press(e.button, env, player);
 	replay_press(e.button, env);
 }
@@ -1615,7 +1659,7 @@ void in_screen_5(t_envirenment *env, t_decoration_texture *t, t_rect_decoration 
 		SDL_RenderCopy(env->rend, t->tx_icon_coin, &rd->rect_icon_coin_s, &rd->rect_icon_coin_d);
 		write_text(env->rend, env->font2, ft_strjoin("x ", ft_itoa(env->solde)), W_W/2, W_H/5);
 		player_reset(player);
-		sprites_reset(ob_sprites, tx_sprites);
+		sprites_reset(ob_sprites, tx_sprites, env);
     }
 	if (env->options_pupop_showed == 1)
     {
@@ -1624,7 +1668,7 @@ void in_screen_5(t_envirenment *env, t_decoration_texture *t, t_rect_decoration 
     }
 }
 
-void event(SDL_Event e, t_envirenment *env, t_player *player)
+void event(SDL_Event e, t_envirenment *env, t_player *player, t_obj *ob_sprites, SDL_Texture **tx_sprites)
 {
 	if (e.type == SDL_QUIT)
 		env->is_run = SDL_FALSE;
@@ -1639,7 +1683,7 @@ void event(SDL_Event e, t_envirenment *env, t_player *player)
 		env->mouse_y = e.motion.y;
 	}
 	if (e.type == SDL_MOUSEBUTTONDOWN)
-		mouse_event(env, player, e);
+		mouse_event(env, player, e, ob_sprites, tx_sprites);
 	if (e.type == SDL_KEYDOWN)
 		key_down_event(env, e);
 	if (e.type == SDL_KEYUP)
@@ -1667,12 +1711,12 @@ int main(int argc, char *argv[])
 	init_rect_decoration(&rd);
    	init_sound_effect(&env);
 	t_obj ob_sprites[env.num_sprites];
-	sprites_reset(ob_sprites, tx_sprites);
+	sprites_reset(ob_sprites, tx_sprites, &env);
 	SDL_Event e;
 	while (env.is_run)
 	{
 		while (SDL_PollEvent(&e))
-			event(e, &env, &player);
+			event(e, &env, &player, ob_sprites, tx_sprites);
 		SDL_RenderClear(env.rend);
 		cursor_mouse(&env);
 		in_screen_1(&env, &t, &rd);

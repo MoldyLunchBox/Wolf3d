@@ -129,6 +129,7 @@ typedef struct  s_obj
 	SDL_bool			alive;
 	int					damage;
 	int					prev_state;
+	int					id;
 	
 }   			t_obj;
 
