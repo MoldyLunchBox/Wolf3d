@@ -57,7 +57,7 @@ int map12[] =		//the map array. Edit to change level but keep the outer walls
 int map[] =		//the map array. Edit to change level but keep the outer walls
 {
 	1, 6, 3, 1, 7, 1, 1, 5, 1, 4, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 0, 0, 0, 0, 0, 1, 0, 9, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	4, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 8, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1,
 	1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1,
@@ -168,7 +168,6 @@ void env_reset(t_envirenment *env)
 	env->rust_code[0] = ' ';
 	env->len_code = 1;
 	env->rust_code[1] = '\0';
-   	env->previous_screen = 1;
    	env->options_pupop_showed = 0;
 	env->screen = 1;
 	env->fps = 2;
@@ -184,7 +183,7 @@ void env_reset(t_envirenment *env)
 	env->skybox = SDL_FALSE;
 	env->cursor = SDL_TRUE;
 	env->bg_music_active = SDL_TRUE;
-	env->enemy_num = 4;
+	env->enemy_num = 12;
 }
 
 void sound_press(SDL_MouseButtonEvent b, t_envirenment *env)
@@ -250,15 +249,10 @@ void menu_icon_press(SDL_MouseButtonEvent b, t_envirenment *env)
 	{
     	if (b.x >= 10 && b.x <= 60 && b.y >= 10 && b.y <= 60)
         {
-			if (env->screen == 2 && env->screen != 3 && env->options_pupop_showed == 0)
-			{
-				env->previous_screen = env->screen;
+			if (env->screen == 2 && env->options_pupop_showed == 0)
        			env->screen = 3;
-			}
 			else if (env->screen == 3 && env->options_pupop_showed == 0)
-			{
-				env->screen = env->previous_screen;
-			}
+				env->screen = 2;
 		}
    }
 }
@@ -341,11 +335,15 @@ void    create_obj(t_obj *obj)
 
 Uint32 getpixel(SDL_Surface *surface, int x, int y)
 {
-    int bpp;
-    Uint8 *p;
+	if (x >= surface->w )
+		x = surface->w -1;
+	if (y >= surface->h  )
+		y = surface->h -1;
 
-	bpp = surface->format->BytesPerPixel;
-	p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+
+    int bpp= surface->format->BytesPerPixel;
+    Uint8 *p= (Uint8 *)surface->pixels + y * surface->pitch + x * bpp; 
+
 	if (bpp == 1)
 	    return (*p);
 	else if (bpp == 2)
@@ -355,9 +353,9 @@ Uint32 getpixel(SDL_Surface *surface, int x, int y)
 	    if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
 	        return (p[0] << 16 | p[1] << 8 | p[2]);
 	    else
-	        return (p[0] | p[1] << 8 | p[2] << 16);
+			        return (p[0] | p[1] << 8 | p[2] << 16);
 	}
-	if (bpp == 4)
+	else if (bpp == 4)
 	    return (*(Uint32 *)p);
 	else
 	    return (0);
@@ -606,14 +604,13 @@ void update(t_player *player, t_obj *ob_sprites, t_envirenment *env)
 	p = movement(player);
 	dx = p.ma;
 	dy = p.mi;
-	if (env->cursor)
-	{
+	
 		if (env->mouse_x == W_W-1)
 			SDL_WarpMouseInWindow(env->window, 1, env->mouse_y);
 		if (env->mouse_x == 0)
 			SDL_WarpMouseInWindow(env->window, W_W-1, env->mouse_y);
 		player->a = -range_conversion_val((t_pnt){W_W, 0}, (t_pnt){1*PI, -1*PI}, env->mouse_x);
-	}
+	
 	safe_angle(player->a);
 	safe_map(player, dx, dy, env);
 	hit_sprites(player, ob_sprites, env);
@@ -818,8 +815,10 @@ void sprite_in_vision(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t
 	if (ob_sprites->state == 2)
 		enemy_damage_die(player, ob_sprites, env, (t_pnt){sx, on_floor});
 	j = (int)sx;
-	while (j < (int)sx + ob_sprites->w)
+	while (j < (int)(sx + ob_sprites->w) && j < 800)
 	{
+		if (j > 800)
+			printf("aaaaa");
 		if (ob_sprites->dist_to_player < player->dist[j])
 		{
 			rect0 = (SDL_Rect){ob_sprites->frame_width * ob_sprites->frame_num + ((float)ob_sprites->surface_w/ob_sprites->w * (j - (int)sx)), ob_sprites->frame_higth * ob_sprites->row, (float)ob_sprites->surface_w / ob_sprites->w, ob_sprites->frame_higth};
@@ -1037,6 +1036,7 @@ void render_view(SDL_Renderer *rend, t_player *player, t_ray r, t_texture t, SDL
 		y++;
 	}
 }
+
 void horizontal_direction(t_ray *ray, t_rend_vars *v, t_player *player)
 {
 	if (ray->ra != 0. && ray->ra != PI)
@@ -1565,7 +1565,6 @@ void in_screen_1(t_envirenment *env, t_decoration_texture *t, t_rect_decoration 
     {
 		Mix_Pause(2);
 		Mix_ResumeMusic();
-       	SDL_RenderClear(env->rend);
        	SDL_RenderCopy(env->rend, t->tx_welcom_sc, &rd->rect_welcom_sc_s, &rd->rect_welcom_sc_d);
        	SDL_RenderCopy(env->rend, t->tx_wolf3d, &rd->rect_wolf3d_s, &rd->rect_wolf3d_d);
        	SDL_RenderCopy(env->rend, t->tx_play, &rd->rect_play_s, &rd->rect_play_d);
@@ -1695,10 +1694,15 @@ int main(int argc, char *argv[])
 {
 	t_envirenment env;
 	t_player player;
-
+int i = 0;
 	init_game(&env, &player);
 	load_walls(&env);
 	load_doors(&env);
+	while(i < 7)
+	{
+		printf("%d \n", env.walls[i]->format->BytesPerPixel);
+		i++;
+	}
 	load_shoots(&env);
 	load_sprites(&env);
 	SDL_Texture *tx_sprites[num_type_sprites];
