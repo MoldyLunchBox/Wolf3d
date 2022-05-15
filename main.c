@@ -1,21 +1,7 @@
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_image.h"
-# include "SDL2/SDL_ttf.h"
-# include "SDL2/SDL_mixer.h"
 #include "wolf3d.h"
-#include <string.h>
-#define PI 3.1415926535
-#define mapX 24	//map width
-#define mapY 24
-#define wallPadding 10
-#define cellS 20 //map cube size
-#define mapS mapX * cellS
-#define WALL_H 50
 
-float dtor(float d)
-{
-    return (d * PI / 180.0f);
-}
+
+
 
 void    init_obj(t_obj *obj, t_vars_obj vars_obj, SDL_Texture *texture)
 {
@@ -100,7 +86,7 @@ void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites, t_envirenment *e
 	init_obj(&ob_sprites[4], (t_vars_obj){15*cellS+10, 7*cellS+10, 295, 400, 1, 3, 3, 0, 295, 1}, tx_sprites[4]);
 
 	//enemy
-	init_obj(&ob_sprites[5], (t_vars_obj){5*cellS, 5*cellS, 910, 1493, 2, 3, 2, 0, 910, 2}, tx_sprites[2]);
+	init_obj(&ob_sprites[5], (t_vars_obj){0*cellS, 0*cellS, 910, 1493, 2, 3, 2, 0, 910, 2}, tx_sprites[2]);
 	init_obj(&ob_sprites[6], (t_vars_obj){16*cellS, 4*cellS, 910, 1493, 2, 3, 2, 3, 910, 2}, tx_sprites[2]);
 	init_obj(&ob_sprites[7], (t_vars_obj){2*cellS, 15*cellS, 910, 1493, 2, 3, 2, 6, 910, 2}, tx_sprites[2]);
 	init_obj(&ob_sprites[8], (t_vars_obj){3*cellS, 13*cellS, 910, 1493, 2, 3, 2, 8, 910, 2}, tx_sprites[2]);
@@ -142,49 +128,8 @@ void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites, t_envirenment *e
 	init_obj(&ob_sprites[37], (t_vars_obj){17*cellS+10, 14*cellS+10, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
 }
 
-void player_reset(t_player *player)
-{
-	player->x = 2 * cellS + 2.0f;
-    player->y = 2 * cellS + 2.0f;
-    player->a = dtor(1.0f);
-	player->rotatSpeed = dtor(6.0f);
-	player->size = cellS / 5;
-	player->speed = 4;
-	player->fov = 60.0;
-	player->frame_gun_x = 0;
-	player->frame_gun_y = 0;
-	player->gun_animation = SDL_FALSE;
-	player->is_shoot = SDL_FALSE;
-	map[56] = 2;
-	player->blood = W_W/4;
-	player->life = (SDL_Rect){40, W_H - 32, player->blood, 5};
-	player->damaged = SDL_FALSE;
-}
-void env_reset(t_envirenment *env)
 
-{
-	env->is_run = SDL_TRUE;
-	env->code_valid = SDL_FALSE;
-	env->rust_code[0] = ' ';
-	env->len_code = 1;
-	env->rust_code[1] = '\0';
-   	env->options_pupop_showed = 0;
-	env->screen = 1;
-	env->fps = 2;
-	env->fps_quit = 2;
-	env->frame_sound = 0;
-	env->frame_quit = 0;
-	env->frame_door=0;
-	env->fade = 220;
-	env->num_sprites = 38;
-	env->solde = 0;
-	env->minimap = SDL_FALSE;
-	env->texture = SDL_TRUE;
-	env->skybox = SDL_FALSE;
-	env->cursor = SDL_TRUE;
-	env->bg_music_active = SDL_TRUE;
-	env->enemy_num = 12;
-}
+
 
 void sound_press(SDL_MouseButtonEvent b, t_envirenment *env)
 {
@@ -487,9 +432,9 @@ void safe_map(t_player *player, float pdx, float pdy, t_envirenment *env)
 	vars.ipy = player->y / cellS;
 	vars.ipy_add_y0 = (player->y + vars.y0) / cellS;
 	vars.ipy_sub_y0 = (player->y - vars.y0) / cellS;
-	if ((vars.ipy * mapX + vars.ipx_add_x0 != 0 && map[vars.ipy * mapX + vars.ipx_add_x0] == 0))
+	if ((vars.ipy * env->map_size + vars.ipx_add_x0 != 0 && env->map[vars.ipy * env->map_size + vars.ipx_add_x0] == 0))
 		player->x += pdx * player->speed;
-	if ((vars.ipy_add_y0 * mapX + vars.ipx != 0 && map[vars.ipy_add_y0 * mapX + vars.ipx] == 0))
+	if ((vars.ipy_add_y0 * env->map_size + vars.ipx != 0 && env->map[vars.ipy_add_y0 * env->map_size + vars.ipx] == 0))
 		player->y += pdy * player->speed;
 }
 
@@ -503,7 +448,7 @@ void show_door_code(t_player *player, t_envirenment *env)
 	vars.ipx_add_x0 = (player->x + vars.x0) / cellS;
 	vars.ipy = player->y / cellS;
 	vars.ipy_add_y0 = player->y / cellS;
-	if (map[vars.ipy_add_y0 * mapX + vars.ipx_add_x0] == 2 && env->code_valid == SDL_FALSE)
+	if (env->map[vars.ipy_add_y0 * env->map_size + vars.ipx_add_x0] == 2 && env->code_valid == SDL_FALSE)
 		env->screen = 4;
 }
 
@@ -518,7 +463,7 @@ void open_door(t_envirenment *env)
 	if (env->frame_door == 4)
 	{
 		env->frame_door = 5;
-		map[56] = 0;
+		env->map[env->door_position] = 0;
 	}
 }
 
@@ -655,7 +600,7 @@ void sort_sprites(t_obj *ob_sprites, int num_sp)
     }
 }
 
-void enemy_movement(t_player *player, t_obj *ob_sprites)
+void enemy_movement(t_envirenment *env, t_player *player, t_obj *ob_sprites)
 {
 	t_var_int vars;
 
@@ -669,13 +614,13 @@ void enemy_movement(t_player *player, t_obj *ob_sprites)
 	&& distance(player->x, player->y, ob_sprites->x, ob_sprites->y) < 100 && ob_sprites->alive)
 	{
 		printf("%d\n", ob_sprites->id);
-		if (ob_sprites->x > player->x && map[vars.ipy*mapX+vars.ipx_sub_x0] == 0)
+		if (ob_sprites->x > player->x && env->map[vars.ipy*env->map_size+vars.ipx_sub_x0] == 0)
 			ob_sprites->x-=0.7;
-		if (ob_sprites->x < player->x && map[vars.ipy*mapX+vars.ipx_add_x0] == 0)
+		if (ob_sprites->x < player->x && env->map[vars.ipy*env->map_size+vars.ipx_add_x0] == 0)
 			ob_sprites->x+=0.7;
-		if (ob_sprites->y > player->y && map[vars.ipy_sub_y0*mapX+vars.ipx] == 0)
+		if (ob_sprites->y > player->y && env->map[vars.ipy_sub_y0*env->map_size+vars.ipx] == 0)
 			ob_sprites->y-=0.7;
-		if (ob_sprites->y < player->y && map[vars.ipy_add_y0*mapX+vars.ipx] == 0)
+		if (ob_sprites->y < player->y && env->map[vars.ipy_add_y0*env->map_size+vars.ipx] == 0)
 			ob_sprites->y+=0.7;
 	}
 }
@@ -754,7 +699,7 @@ void update_sprites(t_player *player, t_obj *ob_sprites, t_envirenment *env)
 	{
 		if (ob_sprites[i].state == 2)
 		{
-			enemy_movement(player, &ob_sprites[i]);
+			enemy_movement(env, player, &ob_sprites[i]);
 			enemy_collision(&ob_sprites[i], ob_sprites, env);
 			enemy_animation(player, &ob_sprites[i], env);
 			player_damage_lose(player, &ob_sprites[i], env);	
@@ -1037,7 +982,7 @@ void render_view(SDL_Renderer *rend, t_player *player, t_ray r, t_texture t, SDL
 	}
 }
 
-void horizontal_direction(t_ray *ray, t_rend_vars *v, t_player *player)
+void horizontal_direction(t_ray *ray, t_rend_vars *v, t_player *player, t_envirenment *env)
 {
 	if (ray->ra != 0. && ray->ra != PI)
 		{
@@ -1061,29 +1006,29 @@ void horizontal_direction(t_ray *ray, t_rend_vars *v, t_player *player)
 		{
 			ray->rx = player->x;
 			ray->ry = player->y;
-			v->dof = mapX;
+			v->dof = env->map_size;
 		}
 }
 
-void horizontal_line(t_ray *ray, t_texture *tex, t_rend_vars *v, t_player *player)
+void horizontal_line(t_envirenment *env, t_ray *ray, t_texture *tex, t_rend_vars *v, t_player *player)
 {
 	v->dof = 0;
 	ray->dist_h = 100000;
 	ray->hx = player->x;
 	ray->hy = player->y;
-	horizontal_direction(ray, v, player);
-	while (v->dof < mapX)
+	horizontal_direction(ray, v, player, env);
+	while (v->dof < env->map_size)
 	{
 		v->mx = (int)(ray->rx)/cellS;
 		v->my = (int)(ray->ry)/cellS;
-		v->mp = v->my*mapX + v->mx;
-		if (v->mp > 0 && v->mp < mapX*mapY && map[v->mp] >= 1)
+		v->mp = v->my*env->map_size + v->mx;
+		if (v->mp > 0 && v->mp < env->map_size*env->map_size && env->map[v->mp] >= 1)
 		{
 			ray->hx = ray->rx;
 			ray->hy = ray->ry;
 			ray->dist_h = distance(player->x, player->y, ray->hx, ray->hy);
-			v->dof = mapX;
-			tex->hmt=map[v->mp];
+			v->dof = env->map_size;
+			tex->hmt=env->map[v->mp];
 		}	
 		else
 		{
@@ -1094,7 +1039,7 @@ void horizontal_line(t_ray *ray, t_texture *tex, t_rend_vars *v, t_player *playe
 	}
 }
 
-void vertical_direction(t_ray *ray, t_rend_vars *v, t_player *player)
+void vertical_direction(t_ray *ray, t_rend_vars *v, t_player *player, t_envirenment *env)
 {
 	float aTan;
 
@@ -1117,28 +1062,28 @@ void vertical_direction(t_ray *ray, t_rend_vars *v, t_player *player)
 	{
 		ray->rx = player->x;
 		ray->ry = player->y;
-		v->dof = mapX;
+		v->dof = env->map_size;
 	}
 }
-void vertical_line(t_ray *ray, t_texture *tex, t_rend_vars *v, t_player *player)
+void vertical_line(t_envirenment *env, t_ray *ray, t_texture *tex, t_rend_vars *v, t_player *player)
 {
 	v->dof = 0;
 	ray->dist_v = 100000;
 	ray->vx = player->x;
 	ray->vy = player->y;
-	vertical_direction(ray, v, player);
-	while (v->dof < mapX)
+	vertical_direction(ray, v, player, env);
+	while (v->dof < env->map_size)
 	{
 		v->mx = (int)(ray->rx)/cellS;
 		v->my = (int)(ray->ry)/cellS;
-		v->mp = v->my*mapX + v->mx;
-		if (v->mp > 0 && v->mp < mapX*mapY && map[v->mp] >= 1)
+		v->mp = v->my*env->map_size + v->mx;
+		if (v->mp > 0 && v->mp < env->map_size*env->map_size && env->map[v->mp] >= 1)
 		{
 			ray->vx = ray->rx;
 			ray->vy = ray->ry;
 			ray->dist_v = distance(player->x, player->y, ray->vx, ray->vy);
-			v->dof = mapY;
-			tex->vmt=map[v->mp];
+			v->dof = env->map_size;
+			tex->vmt=env->map[v->mp];
 		}	
 		else
 		{
@@ -1190,8 +1135,8 @@ void render_rays(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_
 	while (ray.num < numRays)
 	{
 		ray.ra = safe_angle(ray.ra);
-		horizontal_line(&ray, &tex, &v, player);
-		vertical_line(&ray, &tex, &v, player);
+		horizontal_line(env, &ray, &tex, &v, player);
+		vertical_line(env, &ray, &tex, &v, player);
 		ray.shade = 1;
 		closer_line(rend, &ray, &tex);
 		ray.ca = safe_angle(player->a - ray.ra);
@@ -1204,15 +1149,15 @@ void render_rays(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_
 	}
 }
 
-void draw_map_scene(SDL_Renderer *rend)
+void draw_map_scene(t_envirenment *env, SDL_Renderer *rend)
 {
 	t_var_int v;
 
 	v.y0 = -1;
-	while (++v.y0 < mapY)
+	while (++v.y0 < env->map_size)
 	{
 		v.x0 = -1;
-		while (++v.x0 < mapX)
+		while (++v.x0 < env->map_size)
 		{
 			v.ipy = v.y0 * cellS - 1;
 			while (++v.ipy < v.y0 * cellS + cellS)
@@ -1220,7 +1165,7 @@ void draw_map_scene(SDL_Renderer *rend)
 				v.ipx = v.x0 * cellS - 1;
 				while (++v.ipx < v.x0 * cellS + cellS)
 				{
-					if (map[v.y0 * mapX + v.x0] >= 1)
+					if (env->map[v.y0 * env->map_size + v.x0] >= 1)
 						SDL_SetRenderDrawColor(rend, 150, 150, 150, 255);
 					else
 						SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
@@ -1235,16 +1180,18 @@ void render_map(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envir
 {
 	int s;
 
-	draw_map_scene(rend);
+	draw_map_scene(env, rend);
 	draw_player(player, rend);
 	SDL_SetRenderDrawColor(rend, 255, 0, 0, 255);
 	s = 0;
-	while (s < env->num_sprites)
-	{
-		if (ob_sprites[s].state != 0)
-			draw_square(rend, 4, ob_sprites[s].x, ob_sprites[s].y);
-		s++;
-	}
+
+	if (env->map_size == 24)
+		while (s < env->num_sprites)
+		{
+			if (ob_sprites[s].state != 0)
+				draw_square(rend, 4, ob_sprites[s].x, ob_sprites[s].y);
+			s++;
+		}
 }
 
 void	draw_sky(SDL_Renderer *rend, SDL_Surface *sky, t_player *player)
@@ -1280,7 +1227,8 @@ void render(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_Surfa
 	if (env->skybox)
 		draw_sky(rend, sky, player);
     render_rays(rend, player, walls, quit, doors, floor, ceil, env);
-	draw_sprite(rend, player, ob_sprites, env);
+	if (env->map_size == 24)
+		draw_sprite(rend, player, ob_sprites, env);
     if (env->minimap)
         render_map(rend, player, ob_sprites, env);
 }
@@ -1303,81 +1251,7 @@ void write_text(SDL_Renderer *rend, TTF_Font *font, char *str, int x, int y)
 	SDL_FreeSurface(surfaceMessage);
 	SDL_DestroyTexture(Message);
 }
-void init_game(t_envirenment *env, t_player *player)
-{
-	env_reset(env);
-	player_reset(player);
-	SDL_Init(SDL_INIT_EVERYTHING);
-    TTF_Init();
-	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024);
-	env->font1 = TTF_OpenFont("/Library/Fonts/Arial.ttf", 42);
-	env->font2 = TTF_OpenFont("/Library/Fonts/Arial.ttf", 26);
-	env->window = SDL_CreateWindow(
-		"Wolf3D",
-		SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED,
-		W_W,
-		W_H,
-		SDL_WINDOW_SHOWN);
-	env->rend = SDL_CreateRenderer(env->window, -1, SDL_RENDERER_ACCELERATED);
-}
-void load_walls(t_envirenment *env)
-{
-	env->walls[0] = IMG_Load("resources/images/walls/wall.png");
-	env->walls[1] = IMG_Load("resources/images/walls/wall_code.png");
-	env->walls[2] = IMG_Load("resources/images/walls/wall_9.png");
-	env->walls[3] = IMG_Load("resources/images/walls/wall_1.png");
-	env->walls[4] = IMG_Load("resources/images/walls/wall_2.png");
-	env->walls[5] = IMG_Load("resources/images/walls/wall_3.png");
-	env->walls[6] = IMG_Load("resources/images/walls/wall_4.png");
-	env->walls[7] = IMG_Load("resources/images/walls/wall_5.png");
-	env->walls[8] = IMG_Load("resources/images/walls/wall_6.png");
-	env->walls[9] = IMG_Load("resources/images/walls/wall_7.png");
-	env->walls[10] = IMG_Load("resources/images/walls/wall_8.png");
-	env->walls[11] = IMG_Load("resources/images/walls/wall_key.png");
-	env->walls[12] = IMG_Load("resources/images/walls/wall_10.png");
-	env->walls[13] = IMG_Load("resources/images/walls/wall_11.png");
-	env->quit[0] = IMG_Load("resources/images/walls/quit1.png");
-	env->quit[1] = IMG_Load("resources/images/walls/quit2.png");
-	env->quit[2] = IMG_Load("resources/images/walls/quit3.png");
-	env->quit[3] = IMG_Load("resources/images/walls/quit4.png");
-}
 
-void load_doors(t_envirenment *env)
-{
-	env->doors[0] = IMG_Load("resources/images/doors/door.png");
-	env->doors[1] = IMG_Load("resources/images/doors/door1.png");
-	env->doors[2] = IMG_Load("resources/images/doors/door2.png");
-	env->doors[3] = IMG_Load("resources/images/doors/door3.png");
-	env->doors[4] = IMG_Load("resources/images/doors/door4.png");
-	env->doors[5] = IMG_Load("resources/images/doors/door5.png");
-	env->doors[6] = IMG_Load("resources/images/doors/door6.png");
-}
-
-void load_shoots(t_envirenment *env)
-{
-	env->shoots[0] = IMG_Load("resources/images/shoot/shoot1.png");
-	env->shoots[1] = IMG_Load("resources/images/shoot/shoot2.png");
-	env->shoots[2] = IMG_Load("resources/images/shoot/shoot3.png");
-	env->shoots[3] = IMG_Load("resources/images/shoot/shoot4.png");
-	env->shoots[4] = IMG_Load("resources/images/shoot/shoot5.png");
-	env->shoots[5] = IMG_Load("resources/images/shoot/shoot6.png");
-	env->shoots[6] = IMG_Load("resources/images/shoot/shoot7.png");
-	env->shoots[7] = IMG_Load("resources/images/shoot/shoot8.png");
-	env->shoots[8] = IMG_Load("resources/images/shoot/shoot9.png");
-}
-
-void load_sprites(t_envirenment *env)
-{
-	env->sprites[0] = IMG_Load("resources/images/sprites/pillar.png");
-	env->sprites[1] = IMG_Load("resources/images/sprites/trash.png");
-	env->sprites[2] = IMG_Load("resources/images/sprites/enemy.png");
-	env->sprites[3] = IMG_Load("resources/images/sprites/coin.png");
-	env->sprites[4] = IMG_Load("resources/images/sprites/table.png");
-	env->sprites[5] = IMG_Load("resources/images/sprites/aid_kit.png");
-	env->sprites[6] = IMG_Load("resources/images/sprites/barrel.png");
-	env->sprites[7] = IMG_Load("resources/images/sprites/lamp.png");
-}
 
 void load_sprites_tex(t_envirenment *env, SDL_Texture **tx_sprites)
 {
@@ -1690,19 +1564,19 @@ void event(SDL_Event e, t_envirenment *env, t_player *player, t_obj *ob_sprites,
 			Mix_Pause(0);
 }
 
+
+
+
+
 int main(int argc, char *argv[])
 {
 	t_envirenment env;
 	t_player player;
-int i = 0;
+	parsing(&env, argv[1]);
 	init_game(&env, &player);
 	load_walls(&env);
 	load_doors(&env);
-	while(i < 7)
-	{
-		printf("%d \n", env.walls[i]->format->BytesPerPixel);
-		i++;
-	}
+	
 	load_shoots(&env);
 	load_sprites(&env);
 	SDL_Texture *tx_sprites[num_type_sprites];

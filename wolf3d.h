@@ -8,7 +8,16 @@
 #define num_type_sprites 8
 #include <math.h>
 #include "./libft/libft.h"
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_image.h"
+# include "SDL2/SDL_ttf.h"
+# include "SDL2/SDL_mixer.h"
+#include <string.h>
 
+#define PI 3.1415926535
+#define wallPadding 10
+#define cellS 20 //map cube size
+#define WALL_H 50
 typedef struct	s_player
 {
 	float x;
@@ -76,7 +85,11 @@ typedef struct	s_environment
 	SDL_Surface *floor;
 	SDL_Surface *ceil;
 	SDL_Surface *sky;
+	int *map;
+	int map_size;
 	int len_code;
+	int door_position;
+	int map_length;
 	char rust_code[6];
 	int screen;
 	int fps;
@@ -273,4 +286,15 @@ typedef struct	s_rect_decoration
 	SDL_Rect rect_damage_sc_d;
 	SDL_Rect life_border;
 }				t_rect_decoration;
+
+
+void init_game(t_envirenment *env, t_player *player);
+void env_reset(t_envirenment *env);
+void player_reset(t_player *player);
+float dtor(float d);
+void	parsing(t_envirenment *env, char *file);
+void load_walls(t_envirenment *env);
+void load_doors(t_envirenment *env);
+void load_shoots(t_envirenment *env);
+void load_sprites(t_envirenment *env);
 #endif

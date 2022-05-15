@@ -21,4 +21,4 @@ LIBFT_LIB = $(LIBFT_DIR)/libft.a
 GAME = wolf3d
 
 all :
-	gcc -g  main.c -o  wolf3d $(INCLUDE) $(LIB) $(SDL) $(LIBFT_LIB)
+	gcc -g  main.c parsing.c init_loading.c tools.c -o  wolf3d $(INCLUDE) $(LIB) $(SDL) $(LIBFT_LIB)
