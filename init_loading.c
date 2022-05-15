@@ -79,3 +79,32 @@ void init_game(t_envirenment *env, t_player *player)
 	env->rend = SDL_CreateRenderer(env->window, -1, SDL_RENDERER_ACCELERATED);
 }
 
+void init_sound_effect(t_envirenment *env)
+{
+	env->music = Mix_LoadMUS("resources/sounds/music.wav");
+	Mix_VolumeMusic(MIX_MAX_VOLUME/4);
+   	Mix_AllocateChannels(7);
+   	env->foots_sound = Mix_LoadWAV("resources/sounds/footsteps.wav");
+   	env->coin_sound = Mix_LoadWAV("resources/sounds/coin_sound.wav");
+	env->bg_music = Mix_LoadWAV("resources/sounds/bg_music.wav");
+	env->enemy_sound = Mix_LoadWAV("resources/sounds/enemy_sound.wav");
+	env->gun_fire_sound = Mix_LoadWAV("resources/sounds/gun_fire_sound.wav");
+	env->aid_kit_sound = Mix_LoadWAV("resources/sounds/aid_kit_sound.wav");
+	env->pain_sound = Mix_LoadWAV("resources/sounds/pain_sound.wav");
+   	Mix_VolumeChunk(env->foots_sound, MIX_MAX_VOLUME);
+   	Mix_VolumeChunk(env->coin_sound, MIX_MAX_VOLUME);
+	Mix_VolumeChunk(env->bg_music, MIX_MAX_VOLUME/10);
+	Mix_VolumeChunk(env->enemy_sound, MIX_MAX_VOLUME/4);
+	Mix_VolumeChunk(env->gun_fire_sound, MIX_MAX_VOLUME);
+	Mix_VolumeChunk(env->aid_kit_sound, MIX_MAX_VOLUME);
+	Mix_VolumeChunk(env->pain_sound, MIX_MAX_VOLUME);
+	Mix_PlayMusic(env->music, -1);
+   	Mix_PlayChannel(0, env->foots_sound, -1);
+	Mix_PlayChannel(2, env->bg_music, -1);
+	Mix_PlayChannel(3, env->enemy_sound, -1);
+	Mix_PlayChannel(6, env->pain_sound, -1);
+   	Mix_Pause(0);
+	Mix_Pause(2);
+	Mix_Pause(3);
+	Mix_Pause(6);
+}
