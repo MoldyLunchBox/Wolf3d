@@ -12,7 +12,7 @@
 
 #include "wolf3d.h"
 
-void vertical_line(t_envirenment *env, t_ray *ray, t_texture *tex, t_rend_vars *v, t_player *player)
+void	vertical_line(t_envirenment *env, t_ray *ray, t_texture *tex, t_rend_vars *v, t_player *player)
 {
 	v->dof = 0;
 	ray->dist_v = 100000;
@@ -41,7 +41,7 @@ void vertical_line(t_envirenment *env, t_ray *ray, t_texture *tex, t_rend_vars *
 	}
 }
 
-void horizontal_line(t_envirenment *env, t_ray *ray, t_texture *tex, t_rend_vars *v, t_player *player)
+void	horizontal_line(t_envirenment *env, t_ray *ray, t_texture *tex, t_rend_vars *v, t_player *player)
 {
 	v->dof = 0;
 	ray->dist_h = 100000;
@@ -70,7 +70,7 @@ void horizontal_line(t_envirenment *env, t_ray *ray, t_texture *tex, t_rend_vars
 	}
 }
 
-void render_rays(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_Surface **quit, SDL_Surface **doors, SDL_Surface *floor, SDL_Surface *ceil, t_envirenment *env)
+void	render_rays(t_envirenment *env, t_player *player)
 {
 	t_rend_vars v;
 	t_ray ray;
@@ -78,7 +78,7 @@ void render_rays(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_
 	
 	tex.vmt = 0;
 	tex.hmt = 0;
-	tex.img = walls[0];
+	tex.img = env->walls[0];
 	ray.ra = player->a + dtor(player->fov / 2);
 	ray.num = 0;
 	while (ray.num < numRays)
@@ -87,24 +87,24 @@ void render_rays(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_
 		horizontal_line(env, &ray, &tex, &v, player);
 		vertical_line(env, &ray, &tex, &v, player);
 		ray.shade = 1;
-		closer_line(rend, &ray, &tex);
+		closer_line(env->rend, &ray, &tex);
 		ray.ca = safe_angle(player->a - ray.ra);
 		ray.dist *= cos(ray.ca); 
 		player->dist[ray.num] = ray.dist;
-		render_view(rend, player, ray, tex, walls, quit, doors, floor, ceil, env);
+		render_view(env, player, ray, tex);
 		ray.ra-=dtor(player->fov / W_W);
 		ray.ra = safe_angle(ray.ra);
 		ray.num++;
 	}
 }
 
-void render(SDL_Renderer *rend, t_player *player, SDL_Surface **walls, SDL_Surface **quit, SDL_Surface **doors, SDL_Surface *floor, SDL_Surface *sky, SDL_Surface *ceil, t_obj *ob_sprites, t_envirenment *env)
+void	render(t_envirenment *env, t_player *player)
 {
 	if (env->skybox)
-		draw_sky(rend, sky, player);
-    render_rays(rend, player, walls, quit, doors, floor, ceil, env);
+		draw_sky(env->rend, env->sky, player);
+    render_rays(env, player);
 	if (env->map_size == 24)
-		draw_sprite(rend, player, ob_sprites, env);
+		draw_sprite(env->rend, player, env->ob_sprites, env);
     if (env->minimap)
-        render_map(rend, player, ob_sprites, env);
+        render_map(env->rend, player, env->ob_sprites, env);
 }

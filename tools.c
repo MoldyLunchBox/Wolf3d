@@ -17,7 +17,7 @@ float dtor(float d)
     return (d * PI / 180.0f);
 }
 
-void write_text(SDL_Renderer *rend, TTF_Font *font, char *str, int x, int y)
+void wr(t_envirenment *env, char *str, t_p pos)
 {
 	SDL_Color color;
 	SDL_Surface* surfaceMessage;
@@ -25,13 +25,13 @@ void write_text(SDL_Renderer *rend, TTF_Font *font, char *str, int x, int y)
 	SDL_Rect Message_rect;
 
 	color = (SDL_Color){200, 100, 0, 255};
-	surfaceMessage = TTF_RenderText_Blended(font, str, color); 
-	Message = SDL_CreateTextureFromSurface(rend, surfaceMessage);
-	Message_rect.x = x;
-	Message_rect.y = y;
+	surfaceMessage = TTF_RenderText_Blended(env->font2, str, color); 
+	Message = SDL_CreateTextureFromSurface(env->rend, surfaceMessage);
+	Message_rect.x = pos.x;
+	Message_rect.y = pos.y;
 	Message_rect.w = surfaceMessage->w;
 	Message_rect.h = surfaceMessage->h;
-	SDL_RenderCopy(rend, Message, NULL, &Message_rect);
+	SDL_RenderCopy(env->rend, Message, NULL, &Message_rect);
 	SDL_FreeSurface(surfaceMessage);
 	SDL_DestroyTexture(Message);
 }

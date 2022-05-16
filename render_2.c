@@ -95,7 +95,7 @@ void vertical_direction(t_ray *ray, t_rend_vars *v, t_player *player, t_envirenm
 	}
 }
 
-void render_view(SDL_Renderer *rend, t_player *player, t_ray r, t_texture t, SDL_Surface **walls, SDL_Surface **quit, SDL_Surface **doors, SDL_Surface *floor, SDL_Surface *ceil, t_envirenment *env)
+void render_view(t_envirenment *env, t_player *player, t_ray r, t_texture t)
 {
 	float line_h;
 	SDL_Rect line;
@@ -106,14 +106,14 @@ void render_view(SDL_Renderer *rend, t_player *player, t_ray r, t_texture t, SDL
 	line.h = 1;
 	
 	line_h = (WALL_H * 220) / r.dist; //220 how player far to screen
-	select_texture(&t, walls, quit, doors, env);
+	select_texture(&t, env->walls, env->quit, env->doors, env);
 	texture_cords(&t, &r, &line_h);
-	rend_wall(rend, &r, &t, line_h, env, &line);
+	rend_wall(env->rend, &r, &t, line_h, env, &line);
 	y = (W_H / 2) + (line_h / 2);
 	while (y < W_H)
 	{
-		rend_floor(rend, &r, &t, env, &line, y, player, floor);
-		rend_ceil(rend, &r, &t, env, &line, y, player, ceil);
+		rend_floor(env->rend, &r, &t, env, &line, y, player, env->floor);
+		rend_ceil(env->rend, &r, &t, env, &line, y, player, env->ceil);
 		y++;
 	}
 }

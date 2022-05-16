@@ -56,7 +56,7 @@ void	mouse_event(t_envirenment *env, t_player *player, SDL_Event e, t_obj *ob_sp
 	replay_press(e.button, env);
 }
 
-void event(SDL_Event e, t_envirenment *env, t_player *player, t_obj *ob_sprites, SDL_Texture **tx_sprites)
+void event(SDL_Event e, t_envirenment *env, t_player *player)
 {
 	if (e.type == SDL_QUIT)
 		env->is_run = SDL_FALSE;
@@ -71,7 +71,7 @@ void event(SDL_Event e, t_envirenment *env, t_player *player, t_obj *ob_sprites,
 		env->mouse_y = e.motion.y;
 	}
 	if (e.type == SDL_MOUSEBUTTONDOWN)
-		mouse_event(env, player, e, ob_sprites, tx_sprites);
+		mouse_event(env, player, e, env->ob_sprites, env->tx_sprites);
 	if (e.type == SDL_KEYDOWN)
 		key_down_event(env, e);
 	if (e.type == SDL_KEYUP)

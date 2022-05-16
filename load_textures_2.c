@@ -46,7 +46,7 @@ void load_decoration(t_decoration_surface *s)
 	s->damage_sc = IMG_Load("resources/images/decoration/damage_sc.png");
 }
 
-void create_decoration_texture(t_envirenment *env, t_decoration_texture *t, t_decoration_surface s)
+void create_decoration_texture(t_envirenment *env, t_decor_texture *t, t_decoration_surface s)
 {
 	t->tx_icon_coin = SDL_CreateTextureFromSurface(env->rend, s.coin);
    	t->tx_icon = SDL_CreateTextureFromSurface(env->rend, s.icon);

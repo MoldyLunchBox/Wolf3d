@@ -17,17 +17,16 @@ void update(t_player *player, t_obj *ob_sprites, t_envirenment *env)
 	float dx;
 	float dy;
 	t_pnt p;
-	
+		
 	p = movement(player);
 	dx = p.ma;
 	dy = p.mi;
-	
-		if (env->mouse_x == W_W-1)
-			SDL_WarpMouseInWindow(env->window, 1, env->mouse_y);
-		if (env->mouse_x == 0)
-			SDL_WarpMouseInWindow(env->window, W_W-1, env->mouse_y);
-		player->a = -range_conversion_val((t_pnt){W_W, 0}, (t_pnt){1*PI, -1*PI}, env->mouse_x);
-	
+	if (env->mouse_x == W_W-1)
+		SDL_WarpMouseInWindow(env->window, 1, env->mouse_y);
+	if (env->mouse_x == 0)
+		SDL_WarpMouseInWindow(env->window, W_W-1, env->mouse_y);
+	player->a = -range_conversion_val((t_pnt){W_W, 0}, (t_pnt){1*PI, -1*PI},
+		env->mouse_x);
 	safe_angle(player->a);
 	safe_map(player, dx, dy, env);
 	hit_sprites(player, ob_sprites, env);

@@ -17,7 +17,7 @@ void player_reset(t_player *player)
 	player->x = 2 * cellS + 2.0f;
     player->y = 2 * cellS + 2.0f;
     player->a = dtor(1.0f);
-	player->rotatSpeed = dtor(20.0f);
+	player->rotatSpeed = dtor(6.0f);
 	player->size = cellS / 5;
 	player->speed = 4;
 	player->fov = 60.0;
