@@ -10,6 +10,7 @@
         "bitset": "c",
         "algorithm": "c",
         "chrono": "c",
-        "unordered_map": "c"
+        "unordered_map": "c",
+        "locale": "c"
     }
 }

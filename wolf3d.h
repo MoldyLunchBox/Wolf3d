@@ -301,6 +301,9 @@ void color_fix(t_color *c);
 float range_conversion_val(t_pnt old, t_pnt new, float old_value);
 float distance(float ax, float ay, float bx, float by);
 Uint32 getpixel(SDL_Surface *surface, int x, int y);
+void draw_square(SDL_Renderer *rend, int size, int x, int y);
+void cursor_mouse(t_envirenment *env);
+void create_obj(t_obj *obj);
 void write_text(SDL_Renderer *rend, TTF_Font *font, char *str, int x, int y);
 void parsing(t_envirenment *env, char *file);
 void load_walls(t_envirenment *env);
@@ -320,6 +323,8 @@ void menu_buttons_press(SDL_MouseButtonEvent b, t_envirenment *env, t_player *pl
 void back_btn_press(SDL_MouseButtonEvent b, t_envirenment *env, t_player *player);
 void replay_press(SDL_MouseButtonEvent b, t_envirenment *env);
 void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites, t_envirenment *env);
+void sprite_in_vision(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envirenment *env, float diff_angles);
+void update_sprites(t_player *player, t_obj *ob_sprites, t_envirenment *env);
 void in_screen_1(t_envirenment *env, t_decoration_texture *t, t_rect_decoration *rd);
 void in_screen_2(t_envirenment *env, t_decoration_texture *t, t_rect_decoration *rd, t_obj *ob_sprites, t_player *player);
 void in_screen_3_4(t_envirenment *env, t_decoration_texture *t, t_rect_decoration *rd);
@@ -346,4 +351,19 @@ void rend_ceil(SDL_Renderer *rend, t_ray *r, t_texture *t, t_envirenment *env, S
 void wall_with_texture(SDL_Renderer *rend, t_ray *r, t_texture *t);
 void rend_wall(SDL_Renderer *rend, t_ray *r, t_texture *t, double line_h, t_envirenment *env, SDL_Rect *line);
 void select_texture(t_texture *t, SDL_Surface **walls, SDL_Surface **quit, SDL_Surface **doors, t_envirenment *env);
+t_pnt movement(t_player *player);
+void hit_sprites(t_player *player, t_obj *ob_sprites, t_envirenment *env);
+void player_damage_lose(t_player *player, t_obj *ob_sprites, t_envirenment *env);
+void enemy_movement(t_envirenment *env, t_player *player, t_obj *ob_sprites);
+void enemy_collision(t_obj *enemy, t_obj *ob_sprites, t_envirenment *env);
+void enemy_animation(t_player *player, t_obj *ob_sprites, t_envirenment *env);
+void enemy_damage_die(t_player *player, t_obj *ob_sprites, t_envirenment *env, t_pnt p);
+void coin_collect(t_player *player, t_obj *ob_sprites, t_envirenment *env);
+void aid_kit_collect(t_player *player, t_obj *ob_sprites, t_envirenment *env);
+void	draw_sky(SDL_Renderer *rend, SDL_Surface *sky, t_player *player);
+void draw_sprite(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envirenment *env);
+void render_map(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envirenment *env);
+void draw_map_scene(t_envirenment *env, SDL_Renderer *rend);
+void draw_player(t_player *player, SDL_Renderer *rend);
+
 #endif

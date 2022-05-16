@@ -21,4 +21,4 @@ LIBFT_LIB = $(LIBFT_DIR)/libft.a
 GAME = wolf3d
 
 all :
-	gcc -g  main.c parsing.c init_loading.c tools.c tools_2.c load_textures.c load_textures_2.c events.c mouse_events_1.c mouse_events_2.c sprites.c screens.c play.c render_1.c render_2.c render_3.c -o  wolf3d $(INCLUDE) $(LIB) $(SDL) $(LIBFT_LIB)
+	gcc -g  main.c parsing.c init_loading.c tools.c tools_2.c tools_3.c load_textures.c load_textures_2.c events.c mouse_events_1.c mouse_events_2.c sprites.c sprites_2.c screens.c play.c play_2.c render_1.c render_2.c render_3.c draw.c enemy.c -o  wolf3d $(INCLUDE) $(LIB) $(SDL) $(LIBFT_LIB)

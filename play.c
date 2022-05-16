@@ -33,7 +33,6 @@ void update(t_player *player, t_obj *ob_sprites, t_envirenment *env)
 	hit_sprites(player, ob_sprites, env);
 }
 
-
 void gun_animation(SDL_Renderer *rend, t_player *player, SDL_Surface **shoots)
 {
 	SDL_Texture *tx_gun;

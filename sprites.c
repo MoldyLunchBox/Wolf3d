@@ -91,3 +91,81 @@ void sprites_reset(t_obj *ob_sprites, SDL_Texture **tx_sprites, t_envirenment *e
 	init_obj(&ob_sprites[36], (t_vars_obj){17*cellS+10, 13*cellS+10, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
 	init_obj(&ob_sprites[37], (t_vars_obj){17*cellS+10, 14*cellS+10, 820, 1694, 1, 2, 1, 0, 820, 1}, tx_sprites[0]);
 }
+
+void sprite_in_vision(SDL_Renderer *rend, t_player *player, t_obj *ob_sprites, t_envirenment *env, float diff_angles)
+{
+	SDL_Rect rect0;
+	SDL_Rect rect1;
+	float sx;
+	float on_floor;
+	int j;
+
+	ob_sprites->h = ((WALL_H * 220) / ob_sprites->dist_to_player)/ob_sprites->size_y;
+	ob_sprites->w = ((WALL_H * 220) / ob_sprites->dist_to_player)/ob_sprites->size_x;
+	sx = range_conversion_val((t_pnt){dtor(player->fov/2), -dtor(player->fov/2)}, (t_pnt){W_W , -ob_sprites->w}, diff_angles);
+	on_floor = ((WALL_H * 220) / ob_sprites->dist_to_player) / 2;
+	if (ob_sprites->state == 5)
+		on_floor *= -1;
+	if (ob_sprites->state == 2)
+		enemy_damage_die(player, ob_sprites, env, (t_pnt){sx, on_floor});
+	j = (int)sx;
+	while (j < (int)(sx + ob_sprites->w) && j < 800)
+	{
+		if (ob_sprites->dist_to_player < player->dist[j])
+		{
+			rect0 = (SDL_Rect){ob_sprites->frame_width * ob_sprites->frame_num + ((float)ob_sprites->surface_w/ob_sprites->w * (j - (int)sx)), ob_sprites->frame_higth * ob_sprites->row, (float)ob_sprites->surface_w / ob_sprites->w, ob_sprites->frame_higth};
+			rect1 = (SDL_Rect){j, W_H/2 + on_floor - ob_sprites->h, 1, ob_sprites->h};
+			SDL_RenderCopyEx(rend, ob_sprites->texture, &rect0, &rect1, 0, NULL, SDL_FLIP_NONE);
+		}
+		j++;
+	}
+}
+
+void sort_sprites(t_obj *ob_sprites, int num_sp)
+{
+	int i, j;
+    t_obj temp;
+    
+    for (i = 0; i < num_sp - 1; i++)
+    {
+        for (j = 0; j < (num_sp - 1 - i); j++)
+        {
+            if (ob_sprites[j].dist_to_player < ob_sprites[j + 1].dist_to_player)
+            {
+                temp = ob_sprites[j];
+                ob_sprites[j] = ob_sprites[j + 1];
+                ob_sprites[j + 1] = temp;
+            } 
+        }
+    }
+}
+
+void update_sprites(t_player *player, t_obj *ob_sprites, t_envirenment *env)
+{
+	int i;
+
+	i = 0;
+	while (i < env->num_sprites)
+	{
+		if (ob_sprites[i].state == 2)
+		{
+			enemy_movement(env, player, &ob_sprites[i]);
+			enemy_collision(&ob_sprites[i], ob_sprites, env);
+			enemy_animation(player, &ob_sprites[i], env);
+			player_damage_lose(player, &ob_sprites[i], env);	
+		}
+		if (ob_sprites[i].state == 3)
+			coin_collect(player,  &ob_sprites[i], env);
+		if (ob_sprites[i].state == 4)
+			aid_kit_collect(player, &ob_sprites[i], env);
+		i++;
+	}
+	i = 0;
+	while (i < env->num_sprites)
+	{
+		float dist = distance(player->x, player->y, ob_sprites[i].x, ob_sprites[i].y);
+		ob_sprites[i].dist_to_player = dist;
+		i++;
+	}
+	sort_sprites(ob_sprites, env->num_sprites);
+}

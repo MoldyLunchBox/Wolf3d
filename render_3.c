@@ -12,7 +12,7 @@
 
 #include "wolf3d.h"
 
-
+void select_texture(t_texture *t, SDL_Surface **walls, SDL_Surface **quit, SDL_Surface **doors, t_envirenment *env)
 {
 	if (t->num == 1)
 		(t->img) = walls[0];
